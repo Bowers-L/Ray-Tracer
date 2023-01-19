@@ -61,7 +61,7 @@ public class Vector3 extends Float3 {
     return sqrt(sqMagnitude());
   }
 
-  public Vector3 norm() {
+  public Vector3 normalized() {
     return this.scale(1 / magnitude());
   }
 

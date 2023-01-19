@@ -13,7 +13,7 @@ public class Plane {
    
    //Construct normal
    this.n = v1.cross(v2);
-   this.n = n.norm();
+   this.n = n.normalized();
    
    this.d = -p.dot(n);  //d = -ax0 -by0 - cz0 
   }
@@ -31,6 +31,6 @@ public class Plane {
   }
   
   public String toString() {
-     return String.format("Normal: %s, d: %f", n.toString(), d); 
+     return String.format("Normal: %s, d: %f", n, d); 
   }
 }

@@ -9,6 +9,7 @@ final Point3 eye = new Point3(0, 0, 0);
 
 float _fov = 0;
 color _background = color(0, 0, 0);
+Light _light;  //Assuming 1 light for now.
 ArrayList<RenderObject> _objects = new ArrayList<RenderObject>();
 float _k = 0;
 
@@ -45,7 +46,7 @@ void interpreter(String file) {
   if (str == null) println ("Error! Failed to read the file.");
 
   ArrayList<Point3> vertices = new ArrayList<Point3>();
-  color currSurface = color(0, 0, 0);
+  Material currMaterial = null;
   for (int i = 0; i < str.length; i++) {
 
     String[] token = splitTokens (str[i], " ");   // get a line and separate the tokens
@@ -54,21 +55,32 @@ void interpreter(String file) {
     if (token[0].equals("fov")) {
       _fov = float(token[1]);
       _k = tan(Util.RAD2DEG * _fov / 2);
-      println("fov: ", _fov);
-      println("k: ", _k);
+      //println("fov: ", _fov);
+      //println("k: ", _k);
     } else if (token[0].equals("background")) {
       float r = float(token[1]);  // this is how to get a float value from a line in the scene description file
       float g = float(token[2]);
       float b = float(token[3]);
       _background = color(r, g, b);
-      println ("background = " + r + " " + g + " " + b);
+      //println ("background = " + r + " " + g + " " + b);
     } else if (token[0].equals("light")) {
+      float x = float(token[1]);
+      float y = float(token[2]);
+      float z = float(token[3]);
+      float r = float(token[4]);
+      float g = float(token[5]);
+      float b = float(token[6]);
+
+      Point3 pos = new Point3(x, y, z);
+      Material mat = new Material(r, g, b);
+      _light = new Light(pos, mat);
+      //println(_light);
     } else if (token[0].equals("surface")) {
       float r = float(token[1]);
       float g = float(token[2]);
       float b = float(token[3]);
-      currSurface = color(r, g, b);
-      println ("surface = " + r + " " + g + " " + b);
+      currMaterial = new Material(r, g, b);
+      //println ("surface = " + r + " " + g + " " + b);
     } else if (token[0].equals("begin")) {
       vertices = new ArrayList<Point3>();
     } else if (token[0].equals("vertex")) {
@@ -79,8 +91,8 @@ void interpreter(String file) {
       vertices.add(new Point3(x, y, z));
     } else if (token[0].equals("end")) {
       Triangle t = new Triangle(vertices.get(0), vertices.get(1), vertices.get(2));
-      RenderObject ro = new RenderObject(t, currSurface);
-      println(ro);
+      RenderObject ro = new RenderObject(t, currMaterial);
+      //println(ro);
       _objects.add(ro);
     } else if (token[0].equals("render")) {
       draw_scene();   // this is where you actually perform the scene rendering
@@ -122,36 +134,62 @@ void draw_scene() {
       }
 
       RenderObject closestObject = null;
+      Point3 hitPoint = null;
       float closestDist = Float.POSITIVE_INFINITY;
-      int debug_count = 0;
+      int obj_count = 0;
       for (RenderObject currObj : _objects) {
-        debug_count++;
+        obj_count++;
         Point3 intersection = eyeRay.intersect(currObj.triangle);
 
         if (intersection != null) {
 
           if (debug_flag) {
-            println("intersection: with object ", debug_count, intersection);
+            println("intersection: with object ", obj_count, intersection);
           }
 
           float dist = eye.sqDistanceTo(intersection);
           if (dist < closestDist) {
             closestDist = dist;
             closestObject = currObj;
+            hitPoint = intersection;
           }
         }
       }
 
       // set the pixel color
       if (closestObject != null) {
-        color c = closestObject.surface;   // you should put the correct pixel color here
+        color c = getDiffuseColor(closestObject, _light, hitPoint);
         set (x, y, c);  // make a tiny rectangle to fill the pixel
       }
     }
   }
 }
 
-Point3 pixelTo3DPoint(float x, float y) {
+private color getDiffuseColor(RenderObject obj, Light light, Point3 hitPoint) {
+  Vector3 n = obj.triangle.getNormal();
+  Vector3 l = (new Vector3(hitPoint, light.position)).normalized();
+  
+   //The normal may point away from either side of the triangle, which is dependent on the orientation of points when the triangle is constructed.
+   //We only care about the acute angle between n and l, rather than which face the normal points out of.
+  float diffuseStrength = abs(n.dot(l));
+  
+  if (debug_flag) {
+    println("\n Calculating diffuse: ");
+    println("Diffuse Strength: ", diffuseStrength);
+    println("N: ", n);
+    println("L: ", l);
+    println("Surface: ", obj.surfaceMat);
+    println("Light: ", light);
+  }
+  
+  float outR = obj.surfaceMat.r * light.material.r * diffuseStrength;
+  float outG = obj.surfaceMat.g * light.material.g * diffuseStrength;
+  float outB = obj.surfaceMat.b * light.material.b * diffuseStrength;
+  
+  return color(outR, outG, outB);
+}
+
+private Point3 pixelTo3DPoint(float x, float y) {
   float xp = (x - width/2) * _k * 2 / width;
   float yp = (y - height/2) * _k * 2 / height;
   yp = -yp;  //Flip so that +y points up.

@@ -10,7 +10,7 @@ public class Triangle {
   }
   
   public boolean pointInside(Point3 point) {
-    Vector3 n = getNormalTo();
+    Vector3 n = getNormal();
     
     int side1 = getSide(point, p1, p2, n);
     int side2 = getSide(point, p2, p3, n);
@@ -43,11 +43,11 @@ public class Triangle {
     }
   }
   
-  public Vector3 getNormalTo() {
+  public Vector3 getNormal() {
    Vector3 ab = new Vector3(p1, p2);
    Vector3 bc = new Vector3(p2, p3);
    
-   return ab.cross(bc);
+   return ab.cross(bc).normalized();
   }
 
   @Override
