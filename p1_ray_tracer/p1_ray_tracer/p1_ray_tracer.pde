@@ -3,15 +3,23 @@
 // The most important part of this code is the interpreter, which will
 // help you parse the scene description (.cli) files.
 
+import java.util.Arrays;
+
 boolean debug_flag = false;
 
 final Point3 eye = new Point3(0, 0, 0);
 
+//Scene Data
 float _fov = 0;
-color _background = color(0, 0, 0);
-Light _light;  //Assuming 1 light for now.
-ArrayList<RenderObject> _objects = new ArrayList<RenderObject>();
 float _k = 0;
+color _background = color(0, 0, 0);
+Scene _mainScene = new Scene();
+
+//Interpreter buffers (these need to be outside in case we recurse into multiple scene files)
+ArrayList<Point3> currVertexBuffer = new ArrayList<Point3>();
+Material currMaterial = null;
+MatStack _matrixStack = new MatStack();
+
 
 void setup() {
   size (300, 300);
@@ -35,6 +43,12 @@ void keyPressed() {
   case '4':
     interpreter("s4.cli");
     break;
+  case '5':
+    interpreter("s5.cli");
+    break;
+  case '6':
+    interpreter("s6.cli");
+    break;
   }
 }
 
@@ -45,8 +59,6 @@ void interpreter(String file) {
   String str[] = loadStrings (file);
   if (str == null) println ("Error! Failed to read the file.");
 
-  ArrayList<Point3> vertices = new ArrayList<Point3>();
-  Material currMaterial = null;
   for (int i = 0; i < str.length; i++) {
 
     String[] token = splitTokens (str[i], " ");   // get a line and separate the tokens
@@ -54,7 +66,7 @@ void interpreter(String file) {
 
     if (token[0].equals("fov")) {
       _fov = float(token[1]);
-      _k = tan(Util.RAD2DEG * _fov / 2);
+      _k = tan(DEG2RAD * _fov / 2);
       //println("fov: ", _fov);
       //println("k: ", _k);
     } else if (token[0].equals("background")) {
@@ -73,7 +85,8 @@ void interpreter(String file) {
 
       Point3 pos = new Point3(x, y, z);
       Material mat = new Material(r, g, b);
-      _light = new Light(pos, mat);
+      Light l = new Light(pos, mat);
+      _mainScene.addLight(l);
       //println(_light);
     } else if (token[0].equals("surface")) {
       float r = float(token[1]);
@@ -82,20 +95,43 @@ void interpreter(String file) {
       currMaterial = new Material(r, g, b);
       //println ("surface = " + r + " " + g + " " + b);
     } else if (token[0].equals("begin")) {
-      vertices = new ArrayList<Point3>();
+      currVertexBuffer = new ArrayList<Point3>();
     } else if (token[0].equals("vertex")) {
       float x = float(token[1]);
       float y = float(token[2]);
       float z = float(token[3]);
 
-      vertices.add(new Point3(x, y, z));
+      Point3 vertex = new Point3(x, y, z);
+      currVertexBuffer.add(_matrixStack.top().multiply(vertex));
     } else if (token[0].equals("end")) {
-      Triangle t = new Triangle(vertices.get(0), vertices.get(1), vertices.get(2));
+      Triangle t = new Triangle(currVertexBuffer.get(0), currVertexBuffer.get(1), currVertexBuffer.get(2));
       RenderObject ro = new RenderObject(t, currMaterial);
       //println(ro);
-      _objects.add(ro);
+      _mainScene.addObject(ro);
     } else if (token[0].equals("render")) {
       draw_scene();   // this is where you actually perform the scene rendering
+    } else if (token[0].equals("read")) {
+        interpreter (token[1]);
+    } else if (token[0].equals("translate")) {
+      float x = float(token[1]);
+      float y = float(token[2]);
+      float z = float(token[3]);
+      _matrixStack.translate(x, y, z);
+    } else if (token[0].equals("scale")) {
+      float sx = float(token[1]);
+      float sy = float(token[2]);
+      float sz = float(token[3]);
+      _matrixStack.scale(sx, sy, sz);
+    } else if (token[0].equals("rotate")) {
+      float angle = float(token[1]);
+      float rx = float(token[2]);
+      float ry = float(token[3]);
+      float rz = float(token[4]);
+      _matrixStack.rotate(angle, rx, ry, rz);
+    } else if (token[0].equals("push")) {
+      _matrixStack.push();  
+    } else if (token[0].equals("pop")) {
+      _matrixStack.pop();
     } else if (token[0].equals("#")) {
       // comment (ignore)
     } else {
@@ -107,7 +143,8 @@ void interpreter(String file) {
 void reset_scene() {
   // reset your scene variables here
   _background = color(0, 0, 0);
-  _objects.clear();
+  _mainScene = new Scene();
+  _matrixStack = new MatStack();
 }
 
 // This is where you should put your code for creating eye rays and tracing them.
@@ -121,8 +158,8 @@ void draw_scene() {
       // Have your routines (like ray/triangle intersection)
       // print information when this flag is set.
       debug_flag = false;
-      if (x == 150 && y == 140)
-        debug_flag = true;
+      //if (x == 150 && y == 140)
+      //  debug_flag = true;
 
       // create and cast an eye ray
       Point3 pixel3D = pixelTo3DPoint(x, y);
@@ -132,59 +169,50 @@ void draw_scene() {
         println("pixel3D: ", pixel3D.toString());
         println("eyeRay: ", eyeRay.toString());
       }
-
-      RenderObject closestObject = null;
-      Point3 hitPoint = null;
-      float closestDist = Float.POSITIVE_INFINITY;
-      int obj_count = 0;
-      for (RenderObject currObj : _objects) {
-        obj_count++;
-        Point3 intersection = eyeRay.intersect(currObj.triangle);
-
-        if (intersection != null) {
-
-          if (debug_flag) {
-            println("intersection: with object ", obj_count, intersection);
-          }
-
-          float dist = eye.sqDistanceTo(intersection);
-          if (dist < closestDist) {
-            closestDist = dist;
-            closestObject = currObj;
-            hitPoint = intersection;
-          }
-        }
-      }
+      
+      RaycastHit hit = _mainScene.raycast(eyeRay);
 
       // set the pixel color
-      if (closestObject != null) {
-        color c = getDiffuseColor(closestObject, _light, hitPoint);
+      if (hit != null) {
+        color c = shade(eyeRay, hit);
         set (x, y, c);  // make a tiny rectangle to fill the pixel
       }
     }
   }
 }
 
-private color getDiffuseColor(RenderObject obj, Light light, Point3 hitPoint) {
-  Vector3 n = obj.triangle.getNormal();
-  Vector3 l = (new Vector3(hitPoint, light.position)).normalized();
-  
-   //The normal may point away from either side of the triangle, which is dependent on the orientation of points when the triangle is constructed.
-   //We only care about the acute angle between n and l, rather than which face the normal points out of.
-  float diffuseStrength = abs(n.dot(l));
-  
-  if (debug_flag) {
-    println("\n Calculating diffuse: ");
-    println("Diffuse Strength: ", diffuseStrength);
-    println("N: ", n);
-    println("L: ", l);
-    println("Surface: ", obj.surfaceMat);
-    println("Light: ", light);
+private color shade(Ray viewRay, RaycastHit hit) {
+  Vector3 n = hit.obj.triangle.getNormal();
+  if (viewRay.direction.dot(n) > 0) {
+    n = n.scale(-1);  //Make sure the normal points towards the camera (view dir and normal are opposites)  
   }
   
-  float outR = obj.surfaceMat.r * light.material.r * diffuseStrength;
-  float outG = obj.surfaceMat.g * light.material.g * diffuseStrength;
-  float outB = obj.surfaceMat.b * light.material.b * diffuseStrength;
+  float lightR = 0;
+  float lightG = 0;
+  float lightB = 0;
+  for(Light l : _mainScene.lights()) {
+      Ray shadow_ray = new Ray(hit.contactPoint, new Vector3(hit.contactPoint, l.position).normalized());
+      RaycastHit shadowHit = _mainScene.raycast(shadow_ray, new HashSet<RenderObject>(Arrays.asList(hit.obj)));
+      
+      boolean objectBlocksLight = false;
+      if (shadowHit != null) {
+        float distToLight = shadow_ray.origin.distanceTo(l.position);
+        
+        objectBlocksLight = shadowHit.distanceToHit > 0 && shadowHit.distanceToHit < distToLight;
+      }
+      
+      if (!objectBlocksLight) {
+        float diffuseStrength = max(0, n.dot(shadow_ray.direction));
+        
+        lightR += l.material.r * diffuseStrength;
+        lightG += l.material.g * diffuseStrength;
+        lightB += l.material.b * diffuseStrength;
+      }
+  }
+  
+  float outR = hit.obj.surfaceMat.r * lightR;
+  float outG = hit.obj.surfaceMat.g * lightG;
+  float outB = hit.obj.surfaceMat.b * lightB;
   
   return color(outR, outG, outB);
 }

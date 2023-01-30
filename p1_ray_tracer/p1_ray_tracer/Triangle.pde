@@ -9,6 +9,13 @@ public class Triangle {
     this.p3 = p3;
   }
   
+  public Vector3 getNormal() {
+   Vector3 ab = new Vector3(p1, p2);
+   Vector3 bc = new Vector3(p2, p3);
+   
+   return ab.cross(bc).normalized();
+  }
+  
   public boolean pointInside(Point3 point) {
     Vector3 n = getNormal();
     
@@ -41,13 +48,6 @@ public class Triangle {
     } else {
       return 0;
     }
-  }
-  
-  public Vector3 getNormal() {
-   Vector3 ab = new Vector3(p1, p2);
-   Vector3 bc = new Vector3(p2, p3);
-   
-   return ab.cross(bc).normalized();
   }
 
   @Override

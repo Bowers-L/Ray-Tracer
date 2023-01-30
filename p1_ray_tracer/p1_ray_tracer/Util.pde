@@ -1,3 +1,1 @@
-public class Util {
-  public static final float RAD2DEG = PI / 180;
-}
+public static final float DEG2RAD = PI / 180;
