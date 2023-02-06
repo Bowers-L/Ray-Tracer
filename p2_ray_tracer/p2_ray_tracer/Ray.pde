@@ -16,7 +16,17 @@ public class Ray {
   }
 }
 
+public class RayIntersectionData {
+  public Point3 contactPoint;
+  public Vector3 normal;  //The normal to the surface hit
+
+  public RayIntersectionData(Point3 contactPoint, Vector3 normal) {
+    this.contactPoint = contactPoint;
+    this.normal = normal;
+  }
+}
+
 public interface IntersectsRay {
-  //Return the point that the ray hits, or null if the ray misses.
-  public abstract Point3 intersection(Ray ray);
+  //Return the point AND normal that the ray hits, or null if the ray misses.
+  public abstract RayIntersectionData intersection(Ray ray);
 }

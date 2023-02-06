@@ -1,14 +1,13 @@
 import java.util.HashSet;
 
-//Useful information returned from raycast
 public class RaycastHit {
   public RenderObject obj;
-  public RayIntersectionData intersection;
+  public Point3 contactPoint;
   public float distanceToHit;
 
-  public RaycastHit(RenderObject obj, RayIntersectionData intersection, float distanceToHit) {
+  public RaycastHit(RenderObject obj, Point3 contactPoint, float distanceToHit) {
     this.obj = obj;
-    this.intersection = intersection;
+    this.contactPoint = contactPoint;
     this.distanceToHit = distanceToHit;
   }
 }
@@ -45,22 +44,20 @@ public class Scene {
   //cast ray into the scene
   public RaycastHit raycast(Ray ray, HashSet<RenderObject> ignored) {
     RenderObject closestObject = null;
-    RayIntersectionData intersect = null;
-    
+    Point3 hitPoint = null;
     float closestDist = Float.POSITIVE_INFINITY;
     for (RenderObject currObj : _sceneObjects) {
       if (ignored.contains(currObj)) {
         continue;
       }
 
-      RayIntersectionData currIntersect = currObj.intersection(ray);
-      if (currIntersect != null) {
-        float dist = ray.origin.distanceTo(currIntersect.contactPoint);
+      Point3 intersection = ray.intersect(currObj.triangle);
+      if (intersection != null) {
+        float dist = ray.origin.sqDistanceTo(intersection);  //Not taking sqrt for optimization.
         if (dist < closestDist) {
-          //Record the closest ray intersection.
           closestDist = dist;
           closestObject = currObj;
-          intersect = currIntersect;
+          hitPoint = intersection;
         }
       }
     }
@@ -68,7 +65,7 @@ public class Scene {
     if (closestObject == null) {
       return null;
     } else {
-      return new RaycastHit(closestObject, intersect, closestDist);
+      return new RaycastHit(closestObject, hitPoint, sqrt(closestDist));
     }
   }
 
