@@ -1,7 +1,9 @@
-public abstract class RenderObject implements IntersectsRay {
+public abstract class SceneObject implements IntersectsRay {
   public Material surfaceMat;
 
-  public RenderObject(Material surface) {
+  public SceneObject(Material surface) {
     this.surfaceMat = surface;
   }
+  
+  public abstract AABBox getBoundingBox();
 }

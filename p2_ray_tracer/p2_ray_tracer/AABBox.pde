@@ -1,35 +1,76 @@
-public class AABBox extends RenderObject {
+public class AABBox extends SceneObject {
     private Point3 min;
     private Point3 max;
     
-    public AABBox(Material surfaceMat, float xmin, float ymin, float zmin, float xmax, float ymax, float zmax) {
+    public class Bounds {
+      public float lower;
+      public float upper;
+      
+      public Bounds(float lower, float upper) {
+        this.lower = lower;
+        this.upper = upper;
+      }
+      
+      //returns true if intersection is valid and false if it is invalid
+      private boolean updateIntersection(Bounds newBounds) {
+          //Increase the lower bound up (if possible)
+          this.lower = newBounds.lower > this.lower ? newBounds.lower : this.lower;
+          
+          //Decrease the upper bound (if possible)
+          this.upper = newBounds.upper < this.upper ? newBounds.upper : this.upper;
+          
+          //Lower bound should not exceed upper bound
+          if (this.lower > this.upper) {
+              return false;
+          }
+          
+          return true;
+      }
+    }
+    
+    public AABBox(Material surfaceMat, Point3 min, Point3 max) {
         super(surfaceMat);
-        min = new Point3(xmin, ymin, zmin);
-        max = new Point3(xmax, ymax, zmax);
+        this.min = min;
+        this.max = max;
     }
     
     @Override
     public RayIntersectionData intersection(Ray r) {
         Point3 contactP = getIntersectionPoint(r);
-        
-        return new RayIntersectionData(contactP, null);
+        return contactP == null ? null : new RayIntersectionData(contactP, getNormal(contactP));
+    }
+    
+    @Override
+    public AABBox getBoundingBox() {
+      return this;
+    } 
+    
+    public Vector3 halfExtents() {
+      Vector3 halfExtents = new Vector3(min, max);
+      return halfExtents.scale(0.5);
+    }
+    
+    public Point3 center() {
+      return min.add(halfExtents());  
     }
     
     private Point3 getIntersectionPoint(Ray r) {
         //Ray BBox Intersection based on PBR section 4.2.1
-        float[] currIntersection = new float[2];
-        float[] xInterval = getInterval(min.x, max.x, r.origin.x, r.direction.x);
-        currIntersection = xInterval;
-        float[] yInterval = getInterval(min.y, max.y, r.origin.y, r.direction.y);
-        if (!updateIntersection(currIntersection, yInterval)) {
-            return null;
-        }
-        float[] zInterval = getInterval(min.z, max.z, r.origin.z, r.direction.z);
-        if (!updateIntersection(currIntersection, zInterval)) {
+        
+        Bounds tBoundsX = getRayTBounds(min.x, max.x, r.origin.x, r.direction.x);
+        Bounds tBounds = tBoundsX;
+        
+        Bounds tBoundsY = getRayTBounds(min.y, max.y, r.origin.y, r.direction.y);
+        if (!tBounds.updateIntersection(tBoundsY)) {
             return null;
         }
         
-        float t = currIntersection[0];
+        Bounds tBoundsZ = getRayTBounds(min.z, max.z, r.origin.z, r.direction.z);
+        if (!tBounds.updateIntersection(tBoundsZ)) {
+            return null;
+        }
+        
+        float t = tBounds.lower;
         if (t < 0) {
             return null;
         }
@@ -37,23 +78,40 @@ public class AABBox extends RenderObject {
         return r.evaluate(t);
     }
     
-    private float[] getInterval(float x1, float x2, float ox, float rDirX) {
+    private Vector3 getNormal(Point3 contactP) {
+      //Translate the box to (0, 0, 0)
+      Vector3 centerToOrigin = new Vector3(center(), new Point3(0, 0, 0));
+      Point3 contactPObjSpace = contactP.add(centerToOrigin);
+      
+      Vector3 halfBoxSize = halfExtents();
+      
+      //Scale min and max to unit box
+      float normalizedX = halfBoxSize.x == 0 ? 0 : contactPObjSpace.x / halfBoxSize.x;
+      float signX = normalizedX < 0 ? -1 : 1;
+      float normalizedY = halfBoxSize.y == 0 ? 0 : contactPObjSpace.y / halfBoxSize.y;
+      float signY = normalizedY < 0 ? -1 : 1;
+      float normalizedZ = halfBoxSize.z == 0 ? 0 : contactPObjSpace.z / halfBoxSize.z;
+      float signZ = normalizedZ < 0 ? -1 : 1;
+      
+      //Add float delta, trunctate by casting to float then int.
+      Vector3 result = new Vector3(
+        truncate(normalizedX + signX * 0.001), 
+        truncate(normalizedY + signY * 0.001), 
+        truncate(normalizedZ + signZ * 0.001));
+      
+      //println("Contact Point: ", contactP);
+      //println("Contact Point Obj: ", contactPObjSpace);
+      //println("Normalized: ", new Float3(normalizedX, normalizedY, normalizedZ));
+      //println("Result: " + result);
+      return result;
+    }
+    
+    private Bounds getRayTBounds(float x1, float x2, float ox, float rDirX) {
+      //t = (x - a_x) / b_x
         float rDirInv = 1./ rDirX;
         float t1 = (x1 - ox) * rDirInv;
         float t2 = (x2 - ox) * rDirInv;
         
-        return t1 > t2 ? new float[] { t2, t1 } : new float[] {t1, t2};   
-    }
-    
-    //returns true if intersection is valid and false if it is invalid
-    private boolean updateIntersection(float[] currInt, float[] newInt) {
-        currInt[0] = newInt[0] > currInt[0] ? newInt[0] : currInt[0];
-        currInt[1] = newInt[1] < currInt[1] ? newInt[1] : currInt[1];
-        
-        if (currInt[0] > currInt[1]) {
-            return false;
-        }
-        
-        return true;
+        return t1 > t2 ? new Bounds(t2, t1) : new Bounds(t1, t2);   
     }
 }

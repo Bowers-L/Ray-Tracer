@@ -21,7 +21,7 @@ color _background = color(0, 0, 0);
 Scene _mainScene = new Scene();
 MatStack _matrixStack = new MatStack();
 
-SceneInterpreter _interpreter = new SceneInterpreter(p1b_dir, p1b_scenes);
+SceneInterpreter _interpreter = new SceneInterpreter(p2_dir, p2_scenes);
 
 void setup() {
     size(300, 300);
@@ -111,6 +111,13 @@ void draw_scene() {
 }
 
 private color shade(RaycastHit hit) {
+    boolean debug_unlit = false;
+
+    if (debug_unlit) {
+        //Ignore lighting (useful for intersection testing)
+        return hit.obj.surfaceMat.getColor();
+    }
+
     float lightR = 0;
     float lightG = 0;
     float lightB = 0;
@@ -118,7 +125,7 @@ private color shade(RaycastHit hit) {
         Ray shadow_ray = new Ray(hit.intersection.contactPoint, new Vector3(hit.intersection.contactPoint, l.position).normalized());
         
         //Raycast ignores the hit object when casting a shadow.
-        RaycastHit shadowHit = _mainScene.raycast(shadow_ray, new HashSet<RenderObject>(Arrays.asList(hit.obj)));
+        RaycastHit shadowHit = _mainScene.raycast(shadow_ray, new HashSet<SceneObject>(Arrays.asList(hit.obj)));
         
         boolean objectBlocksLight = false;
         if (shadowHit != null) {

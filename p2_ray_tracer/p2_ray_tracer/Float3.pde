@@ -1,7 +1,7 @@
 public class Float3 {
-  float x;
-  float y;
-  float z;
+  public float x;
+  public  float y;
+  public float z;
 
   public Float3(float x, float y, float z) {
     this.x = x;

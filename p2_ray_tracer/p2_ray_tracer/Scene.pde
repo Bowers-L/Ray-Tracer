@@ -2,11 +2,11 @@ import java.util.HashSet;
 
 //Useful information returned from raycast
 public class RaycastHit {
-  public RenderObject obj;
+  public SceneObject obj;
   public RayIntersectionData intersection;
   public float distanceToHit;
 
-  public RaycastHit(RenderObject obj, RayIntersectionData intersection, float distanceToHit) {
+  public RaycastHit(SceneObject obj, RayIntersectionData intersection, float distanceToHit) {
     this.obj = obj;
     this.intersection = intersection;
     this.distanceToHit = distanceToHit;
@@ -15,7 +15,7 @@ public class RaycastHit {
 
 public class Scene {
   private ArrayList<Light> _lights = new ArrayList<Light>();
-  private ArrayList<RenderObject> _sceneObjects = new ArrayList<RenderObject>();
+  private ArrayList<SceneObject> _sceneObjects = new ArrayList<SceneObject>();
 
   public Scene() {
     clear();
@@ -26,7 +26,7 @@ public class Scene {
     _sceneObjects.clear();
   }
 
-  public void addObject(RenderObject ro) {
+  public void addObject(SceneObject ro) {
     _sceneObjects.add(ro);
   }
 
@@ -38,17 +38,17 @@ public class Scene {
     return _lights;
   }
 
-  public ArrayList<RenderObject> sceneObjects() {
+  public ArrayList<SceneObject> sceneObjects() {
     return _sceneObjects;
   }
 
   //cast ray into the scene
-  public RaycastHit raycast(Ray ray, HashSet<RenderObject> ignored) {
-    RenderObject closestObject = null;
+  public RaycastHit raycast(Ray ray, HashSet<SceneObject> ignored) {
+    SceneObject closestObject = null;
     RayIntersectionData intersect = null;
     
     float closestDist = Float.POSITIVE_INFINITY;
-    for (RenderObject currObj : _sceneObjects) {
+    for (SceneObject currObj : _sceneObjects) {
       if (ignored.contains(currObj)) {
         continue;
       }
@@ -73,6 +73,6 @@ public class Scene {
   }
 
   public RaycastHit raycast(Ray ray) {
-    return raycast(ray, new HashSet<RenderObject>());
+    return raycast(ray, new HashSet<SceneObject>());
   }
 }

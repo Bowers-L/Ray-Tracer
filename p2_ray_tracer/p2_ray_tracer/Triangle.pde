@@ -1,4 +1,4 @@
-public class Triangle extends RenderObject {
+public class Triangle extends SceneObject {
   public Point3 p1;
   public Point3 p2;
   public Point3 p3;
@@ -51,6 +51,7 @@ public class Triangle extends RenderObject {
     }
   }
 
+  @Override
   public RayIntersectionData intersection(Ray ray) {
     Plane trianglePlane = new Plane(this);
     RayIntersectionData planeIntersect = trianglePlane.intersection(ray);
@@ -65,6 +66,11 @@ public class Triangle extends RenderObject {
     } else {
       return null;
     }
+  }
+  
+  @Override 
+  public AABBox getBoundingBox() {
+    return null;
   }
 
   @Override
