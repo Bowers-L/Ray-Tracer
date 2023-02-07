@@ -77,9 +77,10 @@ public class SceneInterpreter {
         float z = float(token[3]);
 
         Point3 vertex = new Point3(x, y, z);
-        _currVertexBuffer.add(_matrixStack.top().multiply(vertex));
+        _currVertexBuffer.add(vertex);
       } else if (token[0].equals("end")) {
         Triangle t = new Triangle(_currVertexBuffer.get(0), _currVertexBuffer.get(1), _currVertexBuffer.get(2), _currMaterial);
+        t.transform(_matrixStack.top());
         //println(ro);
         _mainScene.addObject(t);
       }
@@ -96,11 +97,22 @@ public class SceneInterpreter {
         Point3 min = new Point3(xmin, ymin, zmin);
         Point3 max = new Point3(xmax, ymax, zmax);
         
-        min = _matrixStack.top().multiply(min);
-        max = _matrixStack.top().multiply(max);
-        //println("Min Pt: ", min);
-        //println("Max Pt: ", max);
-        _mainScene.addObject(new AABBox(_currMaterial, min, max));
+        AABBox box = new AABBox(_currMaterial, min, max);
+        box.transform(_matrixStack.top());
+        
+        _mainScene.addObject(box);
+      }
+      
+      //NAMED OBJECT
+      else if (token[0].equals("named_object")) {
+          String objectName = token[1];
+          SceneObject objectReference = _mainScene.sceneObjects().remove(_mainScene.sceneObjects().size()-1);
+          println("Added object", objectName, " with reference to ", objectReference);
+          _namedObjects.put(objectName, objectReference);
+      } else if (token[0].equals("instance")) {
+        String objectName = token[1];
+        ObjectInstance instance = new ObjectInstance(_namedObjects.get(objectName), _matrixStack.top());
+          _mainScene.addObject(instance);
       }
       
       //MATRIX STACK

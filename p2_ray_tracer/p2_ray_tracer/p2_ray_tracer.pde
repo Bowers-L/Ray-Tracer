@@ -4,6 +4,7 @@
 // help you parse the scene description (.cli) files.
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 final String p1b_dir = "P1B/";
 final String p2_dir = "";
@@ -19,6 +20,7 @@ float _fov = 0;
 float _k = 0;
 color _background = color(0, 0, 0);
 Scene _mainScene = new Scene();
+HashMap<String, SceneObject> _namedObjects = new HashMap<String, SceneObject>();
 MatStack _matrixStack = new MatStack();
 
 SceneInterpreter _interpreter = new SceneInterpreter(p2_dir, p2_scenes);

@@ -68,6 +68,13 @@ public class Triangle extends SceneObject {
     }
   }
   
+  @Override
+  public void transform(Mat4f transMat) {
+    p1 = transMat.multiply(p1);
+    p2 = transMat.multiply(p2);
+    p3 = transMat.multiply(p3);
+  }
+  
   @Override 
   public AABBox getBoundingBox() {
     return null;

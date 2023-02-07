@@ -41,6 +41,12 @@ public class AABBox extends SceneObject {
     }
     
     @Override
+    public void transform(Mat4f transMat) {
+        min = transMat.multiply(min);
+        max = transMat.multiply(max);  
+    }
+    
+    @Override
     public AABBox getBoundingBox() {
       return this;
     } 

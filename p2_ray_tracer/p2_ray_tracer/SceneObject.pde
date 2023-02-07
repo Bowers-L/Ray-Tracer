@@ -5,5 +5,7 @@ public abstract class SceneObject implements IntersectsRay {
     this.surfaceMat = surface;
   }
   
+  public abstract void transform(Mat4f transMat);
+  
   public abstract AABBox getBoundingBox();
 }
