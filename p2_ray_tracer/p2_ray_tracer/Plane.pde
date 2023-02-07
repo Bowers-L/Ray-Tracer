@@ -34,7 +34,7 @@ public class Plane implements IntersectsRay {
   public RayIntersectionData intersection(Ray ray) {
     Point3 contactPoint = getContactPoint(ray);
     
-    return contactPoint == null ? null : new RayIntersectionData(contactPoint, getOrientedNormal(ray));
+    return contactPoint == null ? null : new RayIntersectionData(contactPoint, getOrientedNormal(ray, n));
   }
   
   private Point3 getContactPoint(Ray ray) {
@@ -55,15 +55,6 @@ public class Plane implements IntersectsRay {
 
     return ray.evaluate(t);
   }
-  
-  private Vector3 getOrientedNormal(Ray ray) {
-      Vector3 normal = n;
-      if (ray.direction.dot(normal) > 0) {
-        normal = normal.scale(-1);  //Make sure the normal and the ray point in opposite directions.
-      }
-      
-      return normal;
-  }    
   
   public String toString() {
      return String.format("Normal: %s, d: %f", n, d); 

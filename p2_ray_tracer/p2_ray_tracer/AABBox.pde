@@ -37,7 +37,7 @@ public class AABBox extends SceneObject {
     @Override
     public RayIntersectionData intersection(Ray r) {
         Point3 contactP = getIntersectionPoint(r);
-        return contactP == null ? null : new RayIntersectionData(contactP, getNormal(contactP));
+        return contactP == null ? null : new RayIntersectionData(contactP, getNormal(r, contactP));
     }
     
     @Override
@@ -78,7 +78,7 @@ public class AABBox extends SceneObject {
         return r.evaluate(t);
     }
     
-    private Vector3 getNormal(Point3 contactP) {
+    private Vector3 getNormal(Ray ray, Point3 contactP) {
       //Translate the box to (0, 0, 0)
       Vector3 centerToOrigin = new Vector3(center(), new Point3(0, 0, 0));
       Point3 contactPObjSpace = contactP.add(centerToOrigin);
@@ -86,15 +86,16 @@ public class AABBox extends SceneObject {
       Vector3 halfBoxSize = halfExtents();
       
       //Scale min and max to unit box
-      float normalizedX = halfBoxSize.x == 0 ? 0 : contactPObjSpace.x / halfBoxSize.x;
+      //0/0 situation means the box is actually a plane (or a line), so normal points in that direction
+      float normalizedX = halfBoxSize.x == 0 ? 1 : contactPObjSpace.x / halfBoxSize.x;
       float signX = normalizedX < 0 ? -1 : 1;
-      float normalizedY = halfBoxSize.y == 0 ? 0 : contactPObjSpace.y / halfBoxSize.y;
+      float normalizedY = halfBoxSize.y == 0 ? 1 : contactPObjSpace.y / halfBoxSize.y;
       float signY = normalizedY < 0 ? -1 : 1;
-      float normalizedZ = halfBoxSize.z == 0 ? 0 : contactPObjSpace.z / halfBoxSize.z;
+      float normalizedZ = halfBoxSize.z == 0 ? 1 : contactPObjSpace.z / halfBoxSize.z;
       float signZ = normalizedZ < 0 ? -1 : 1;
       
       //Add float delta, trunctate by casting to float then int.
-      Vector3 result = new Vector3(
+      Vector3 normal = new Vector3(
         truncate(normalizedX + signX * 0.001), 
         truncate(normalizedY + signY * 0.001), 
         truncate(normalizedZ + signZ * 0.001));
@@ -103,7 +104,7 @@ public class AABBox extends SceneObject {
       //println("Contact Point Obj: ", contactPObjSpace);
       //println("Normalized: ", new Float3(normalizedX, normalizedY, normalizedZ));
       //println("Result: " + result);
-      return result;
+      return getOrientedNormal(ray, normal);
     }
     
     private Bounds getRayTBounds(float x1, float x2, float ox, float rDirX) {
