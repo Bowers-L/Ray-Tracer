@@ -1,15 +1,20 @@
-
 public class SceneInterpreter {
   private String sceneFilesDir;  //Relative path from Processing data folder.
   private String[] sceneFileNames;
 
-  //Interpreter buffers (these need to be outside in case we recurse into multiple scene files)
+  private Scene _mainScene;  //A reference to the scene that's drawn by the interpreter.
+
+  //Data structures used to construct the scene.
+  private HashMap<String, SceneObject> _namedObjects = new HashMap<String, SceneObject>();
+  private MatStack _matrixStack = new MatStack();
   ArrayList<Point3> _currVertexBuffer = new ArrayList<Point3>();
   Material _currMaterial = null;
 
   public SceneInterpreter(String sceneFilesDir, String[] sceneFileNames) {
     this.sceneFilesDir = sceneFilesDir;
     this.sceneFileNames = sceneFileNames;
+    
+    this._mainScene = new Scene();
   }
 
   public void interpretSceneAtIndex(int index) {
@@ -20,6 +25,10 @@ public class SceneInterpreter {
 
   // this routine helps parse the text in a scene description file
   public void interpretScene(String file) {
+
+    _mainScene = new Scene();
+    _matrixStack = new MatStack();
+    _namedObjects = new HashMap<String, SceneObject>();
 
     println("Parsing '" + file + "'");
     String str[] = loadStrings(file);
@@ -33,16 +42,17 @@ public class SceneInterpreter {
       String[] token = splitTokens(str[i], " ");   // get a line and separate the tokens
       if (token.length == 0) continue;              // skip blank lines
 
+      //SCENE SETUP (fov, background)
       if (token[0].equals("fov")) {
-        _fov = float(token[1]);
-        _k = tan(DEG2RAD * _fov / 2);
+        _mainScene.setFOV(float(token[1]));
+
         //println("fov: ", _fov);
         //println("k: ", _k);
       } else if (token[0].equals("background")) {
         float r = float(token[1]);  // this is how to get a float value from a line in the scene description file
         float g = float(token[2]);
         float b = float(token[3]);
-        _background = color(r, g, b);
+        _mainScene.setBackground(color(r, g, b));
         //println ("background = " + r + " " + g + " " + b);
       }
 
@@ -143,7 +153,7 @@ public class SceneInterpreter {
         interpretScene(sceneFilesDir + token[1]);
       } 
       else if (token[0].equals("render")) {
-        draw_scene();   // this is where you actually perform the scene rendering
+        _mainScene.render();
       } else if (token[0].equals("#")) {
         // comment (ignore)
       } else {
