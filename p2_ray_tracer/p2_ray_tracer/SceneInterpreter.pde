@@ -2,9 +2,8 @@ public class SceneInterpreter {
   private String sceneFilesDir;  //Relative path from Processing data folder.
   private String[] sceneFileNames;
 
-  private Scene _mainScene;  //A reference to the scene that's drawn by the interpreter.
-
   //Data structures used to construct the scene.
+  private Scene _mainScene;  //A reference to the scene that's drawn by the interpreter.
   private HashMap<String, SceneObject> _namedObjects = new HashMap<String, SceneObject>();
   private MatStack _matrixStack = new MatStack();
   ArrayList<Point3> _currVertexBuffer = new ArrayList<Point3>();
@@ -14,22 +13,27 @@ public class SceneInterpreter {
     this.sceneFilesDir = sceneFilesDir;
     this.sceneFileNames = sceneFileNames;
     
-    this._mainScene = new Scene();
+    reset();
   }
 
   public void interpretSceneAtIndex(int index) {
+    reset();
+    
     if (index < sceneFileNames.length) {
       interpretScene(sceneFilesDir + sceneFileNames[index]);
     }
   }
-
-  // this routine helps parse the text in a scene description file
-  public void interpretScene(String file) {
-
+  
+  private void reset() {
     _mainScene = new Scene();
     _matrixStack = new MatStack();
     _namedObjects = new HashMap<String, SceneObject>();
+    _currVertexBuffer = new ArrayList<Point3>();
+    _currMaterial = null;
+  }
 
+  // this routine helps parse the text in a scene description file
+  private void interpretScene(String file) {
     println("Parsing '" + file + "'");
     String str[] = loadStrings(file);
     if (str == null) {

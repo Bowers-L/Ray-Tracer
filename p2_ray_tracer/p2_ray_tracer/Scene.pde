@@ -48,11 +48,11 @@ public class Scene {
               //debug_flag = true;
               
               // create and cast an eye ray
-              Point3 pixel3D = screenToWorldPos(x, y);
-              Ray eyeRay = new Ray(eye, new Vector3(eye, pixel3D));
+              Point3 pixelInWorld = screenToWorldPos(x, y);
+              Ray eyeRay = new Ray(eye, new Vector3(eye, pixelInWorld));
               
               if (debug_flag) {
-                  println("pixel3D: ", pixel3D.toString());
+                  println("pixel3D: ", pixelInWorld.toString());
                   println("eyeRay: ", eyeRay.toString());
               }
               
