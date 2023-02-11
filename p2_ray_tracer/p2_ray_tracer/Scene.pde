@@ -60,14 +60,14 @@ public class Scene {
 
       if (debug_unlit) {
           //Ignore lighting (useful for intersection testing)
-          return eyeHit.obj.surfaceMat.getColor();
+          return eyeHit.obj.material.getColor();
       }
 
       float lightR = 0;
       float lightG = 0;
       float lightB = 0;
       for (Light l : lights()) {
-          Ray shadowRay = new Ray(eyeHit.intersection.contactPoint, new Vector3(eyeHit.intersection.contactPoint, l.position).normalized());
+          Ray shadowRay = new Ray(eyeHit.contact.point, new Vector3(eyeHit.contact.point, l.position).normalized());
           
           //Raycast ignores the hit object when casting a shadow.
           RaycastHit shadowHit = raycast(shadowRay);  //Don't ignore the eyeHit object because the shadow ray could pass through it to get to the light.
@@ -80,7 +80,7 @@ public class Scene {
           }
           
           if (!objectBlocksLight) {
-              float diffuseStrength = max(0, eyeHit.intersection.normal.dot(shadowRay.direction));
+              float diffuseStrength = max(0, eyeHit.contact.normal.dot(shadowRay.direction));
               
               //Additive Blending for now.
               lightR += l.material.r * diffuseStrength;
@@ -89,9 +89,9 @@ public class Scene {
           }
       }
       
-      float outR = eyeHit.obj.surfaceMat.r * lightR;
-      float outG = eyeHit.obj.surfaceMat.g * lightG;
-      float outB = eyeHit.obj.surfaceMat.b * lightB;
+      float outR = eyeHit.obj.material.r * lightR;
+      float outG = eyeHit.obj.material.g * lightG;
+      float outB = eyeHit.obj.material.b * lightB;
       
       return color(outR, outG, outB);
   }

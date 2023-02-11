@@ -30,14 +30,14 @@ public class ObjectInstance extends SceneObject {
     }
 
     //Transform the hit data back into world space
-    Point3 contactPointWorld = transformMat.multiply(hitObjSpace.intersection.contactPoint);
-    Vector3 contactNormalWorld = transformMatInv.transpose().multiply(hitObjSpace.intersection.normal);
+    Point3 contactPointWorld = transformMat.multiply(hitObjSpace.contact.point);
+    Vector3 contactNormalWorld = transformMatInv.transpose().multiply(hitObjSpace.contact.normal);
     contactNormalWorld = contactNormalWorld.normalized();  //I forgot to do this and it caused debugging pain.
     
     //println("Normal Object Space: " + hitObjSpace.intersection.normal);
     //println("Normal World Space: " + contactNormalWorld);
     float distWorld = ray.origin.distanceTo(contactPointWorld);
-    RaycastHit hitWorld = new RaycastHit(hitObjSpace.obj, new RayIntersectionData(contactPointWorld, contactNormalWorld), distWorld);
+    RaycastHit hitWorld = new RaycastHit(hitObjSpace.obj, new SurfaceContact(contactPointWorld, contactNormalWorld), distWorld);
     return hitWorld;
   }
 }

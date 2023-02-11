@@ -7,8 +7,12 @@
 * Author: Logan Bowers
 * Important Notes:
 * - Most of the starter/rendering code has been migrated to the Scene and SceneInterpreter classes.
-* - The actual raytracing is done in the Scene class.
-* - Some files contain multiple smaller classes. This is mainly to save tab space in the Processing IDE by grouping related functionality together. 
+* - The actual raytracing and shading is done in the Scene class.
+* - Some files contain multiple smaller classes. This is mainly to save tab space in the Processing IDE by grouping related functionality together.
+* - Most notably:
+  -   Ray.pde contains SurfaceContact and RaycastHit
+  -   Float3.pde contains Point3 and Vector3
+  -   AABBox.pde contains Bounds 
 */
 
 import java.util.Arrays;

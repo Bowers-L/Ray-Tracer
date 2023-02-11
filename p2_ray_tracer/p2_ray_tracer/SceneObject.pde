@@ -1,3 +1,4 @@
-public abstract class SceneObject implements Raycastable {
+public abstract class SceneObject {
+  public abstract RaycastHit raycast(Ray ray);
   public abstract AABBox getBoundingBox();
 }

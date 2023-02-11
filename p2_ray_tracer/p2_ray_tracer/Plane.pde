@@ -1,4 +1,4 @@
-public class Plane implements IntersectsRay {
+public class Plane extends Shape {
   public Vector3 n;
   public float d;
 
@@ -27,14 +27,24 @@ public class Plane implements IntersectsRay {
   }
   
   public boolean pointOnPlane(Point3 p) {
-    return evaluateObjectiveFunction(p) == 0; 
+    return evaluateObjectiveFunction(p) == 0;
   }
   
   @Override
-  public RayIntersectionData intersection(Ray ray) {
+  public void transform(Mat4f transMat) {
+    //Don't need to transform planes
+  }
+  
+  @Override
+  public AABBox getBoundingBox() {
+    return null;  //Planes are infinite and don't have bounding boxes.  
+  }
+  
+  @Override
+  public SurfaceContact intersection(Ray ray) {
     Point3 contactPoint = getContactPoint(ray);
     
-    return contactPoint == null ? null : new RayIntersectionData(contactPoint, getOrientedNormal(ray, n));
+    return contactPoint == null ? null : new SurfaceContact(contactPoint, getOrientedNormal(ray, n));
   }
   
   private Point3 getContactPoint(Ray ray) {
@@ -49,7 +59,7 @@ public class Plane implements IntersectsRay {
     }
     float t = -objectiveOrigin / nDotDir;  //-(ao_x + bo_y + co_z + d) / (ad_x + bd_y + cd_z)
 
-    if (t < 0) {  //Ray shouldn't go backwards.
+    if (t < rayEpsilon) {  //Ray shouldn't go backwards.
       return null;
     }
 

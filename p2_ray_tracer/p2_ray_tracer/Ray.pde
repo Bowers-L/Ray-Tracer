@@ -16,14 +16,15 @@ public class Ray {
   }
 }
 
-public class RayIntersectionData {
-  //public Primitive object;
-  public Point3 contactPoint;
+//Reference: pbrt 2.10.1 (SurfaceInteraction class)
+public class SurfaceContact {
+  //Simplified version that just gets the point and normal at the surface.
+  public Point3 point;
   public Vector3 normal;  //The normal to the surface hit
 
-  public RayIntersectionData(Point3 contactPoint, Vector3 normal) {
+  public SurfaceContact(Point3 contactPoint, Vector3 normal) {
     //this.object = object;
-    this.contactPoint = contactPoint;
+    this.point = contactPoint;
     this.normal = normal;
   }
 }
@@ -31,23 +32,12 @@ public class RayIntersectionData {
 //Useful information returned from raycast
 public class RaycastHit {
   public Primitive obj;
-  public RayIntersectionData intersection;
+  public SurfaceContact contact;
   public float distance;
   
-  public RaycastHit(Primitive obj, RayIntersectionData intersection, float distance) {
+  public RaycastHit(Primitive obj, SurfaceContact intersection, float distance) {
     this.obj = obj;
-    this.intersection = intersection;
+    this.contact = intersection;
     this.distance = distance;
   }
-}
-
-public interface Raycastable {
-  public abstract RaycastHit raycast(Ray ray);
-}
-
-public interface IntersectsRay {
-  public final float rayEpsilon = 0.001;
-  
-  //Return the point AND normal that the ray hits, or null if the ray misses.
-  public abstract RayIntersectionData intersection(Ray ray);
 }

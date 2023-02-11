@@ -1,10 +1,9 @@
-public class Triangle extends Primitive {
+public class Triangle extends Shape {
   public Point3 p1;
   public Point3 p2;
   public Point3 p3;
 
-  public Triangle(Point3 p1, Point3 p2, Point3 p3, Material surface) {
-    super(surface);
+  public Triangle(Point3 p1, Point3 p2, Point3 p3) {
     this.p1 = p1;
     this.p2 = p2;
     this.p3 = p3;
@@ -52,15 +51,15 @@ public class Triangle extends Primitive {
   }
 
   @Override
-  public RayIntersectionData intersection(Ray ray) {
+  public SurfaceContact intersection(Ray ray) {
     Plane trianglePlane = new Plane(this);
-    RayIntersectionData planeIntersect = trianglePlane.intersection(ray);
+    SurfaceContact planeIntersect = trianglePlane.intersection(ray);
 
     if (planeIntersect == null) {
       return null;
     }
 
-    boolean isInsideTriangle = pointInside(planeIntersect.contactPoint);
+    boolean isInsideTriangle = pointInside(planeIntersect.point);
     if (isInsideTriangle) {
       return planeIntersect;
     } else {

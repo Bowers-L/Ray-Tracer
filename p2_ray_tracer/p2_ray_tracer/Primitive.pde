@@ -1,25 +1,30 @@
-//A SINGLE OBJECT
-public abstract class Primitive extends SceneObject implements IntersectsRay {
+//Reference: pbrt 4.1
+public class Primitive extends SceneObject {
 
-    public Material surfaceMat;
+    public Shape shape;  //Describes the geometric properties
+    public Material material;  //Describes the render properties of the primitive.
     
-    public Primitive(Material surface) {
-      this.surfaceMat = surface;
+    public Primitive(Shape shape, Material surface) {
+      this.shape = shape;
+      this.material = surface;
     }
     
-    public abstract void transform(Mat4f transMat);
+    @Override
+    public AABBox getBoundingBox() {
+      return shape.getBoundingBox();
+    }
     
     @Override
     public RaycastHit raycast(Ray ray) {      
       //For normal primitives, we just need to get the ray intersection directly and return the obj.
-      RayIntersectionData intersect = intersection(ray);
+      SurfaceContact contact = shape.intersection(ray);
 
-      if (intersect == null) {
+      if (contact == null) {
         return null;
       } else {
         //The object has to be in front by at least a tiny bit for it to count.
-        float dist = ray.origin.distanceTo(intersect.contactPoint);
-        return dist < rayEpsilon ? null : new RaycastHit(this, intersect, dist);
+        float dist = ray.origin.distanceTo(contact.point);
+        return new RaycastHit(this, contact, dist);
       }
     }
 }
