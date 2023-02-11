@@ -67,20 +67,20 @@ public class Scene {
       float lightG = 0;
       float lightB = 0;
       for (Light l : lights()) {
-          Ray shadow_ray = new Ray(eyeHit.intersection.contactPoint, new Vector3(eyeHit.intersection.contactPoint, l.position).normalized());
+          Ray shadowRay = new Ray(eyeHit.intersection.contactPoint, new Vector3(eyeHit.intersection.contactPoint, l.position).normalized());
           
           //Raycast ignores the hit object when casting a shadow.
-          RaycastHit shadowHit = raycast(shadow_ray);  //Don't ignore the eyeHit object because the shadow ray could pass through it to get to the light.
+          RaycastHit shadowHit = raycast(shadowRay);  //Don't ignore the eyeHit object because the shadow ray could pass through it to get to the light.
           
           boolean objectBlocksLight = false;
           if (shadowHit != null) {
               //Only cast shadows if the hit object is between the object and the light source.
-              float distToLight = shadow_ray.origin.distanceTo(l.position);
+              float distToLight = shadowRay.origin.distanceTo(l.position);
               objectBlocksLight = shadowHit.distance > 0 && shadowHit.distance < distToLight;
           }
           
           if (!objectBlocksLight) {
-              float diffuseStrength = max(0, eyeHit.intersection.normal.dot(shadow_ray.direction));
+              float diffuseStrength = max(0, eyeHit.intersection.normal.dot(shadowRay.direction));
               
               //Additive Blending for now.
               lightR += l.material.r * diffuseStrength;
@@ -97,13 +97,13 @@ public class Scene {
   }
 
   //Casts a ray into the scene and return information about the closest object hit.
-  public RaycastHit raycast(Ray ray, HashSet<SceneObject> ignored) {
+  public RaycastHit raycast(Ray ray) {
     RaycastHit closestHit = null;
     float closestDist = Float.POSITIVE_INFINITY;
     for (SceneObject currObj : _sceneObjects) {
 
       //Need to call and get the exact object hit
-      RaycastHit hit = currObj.raycast(ray, ignored);
+      RaycastHit hit = currObj.raycast(ray);
       if (hit != null && hit.distance < closestDist) {
         //Record the closest ray intersection.
         closestHit = hit;
@@ -116,10 +116,6 @@ public class Scene {
     } else {
       return closestHit;
     }
-  }
-
-  public RaycastHit raycast(Ray ray) {
-    return raycast(ray, new HashSet<SceneObject>());
   }
 
   public void addObject(SceneObject ro) {

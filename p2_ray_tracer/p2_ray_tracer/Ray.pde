@@ -42,7 +42,7 @@ public class RaycastHit {
 }
 
 public interface Raycastable {
-  public abstract RaycastHit raycast(Ray ray, HashSet<SceneObject> ignored);
+  public abstract RaycastHit raycast(Ray ray);
 }
 
 public interface IntersectsRay {

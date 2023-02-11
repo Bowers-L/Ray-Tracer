@@ -15,7 +15,7 @@ public class SceneInterpreter {
   private HashMap<String, SceneObject> _namedObjects = new HashMap<String, SceneObject>();
   private MatStack _matrixStack = new MatStack();
   private ArrayList<Point3> _currVertexBuffer = new ArrayList<Point3>();
-  private Stack<ArrayList<SceneObject>> _accelBuffer = new Stack<ArrayList<SceneObject>>();  //Convert to stack of buffers for nested functionality.
+  private Stack<ArrayList<SceneObject>> _accelBufferStack = new Stack<ArrayList<SceneObject>>();
   private Material _currMaterial = null;
 
   public SceneInterpreter(String sceneFilesDir, String[] sceneFileNames) {
@@ -41,14 +41,15 @@ public class SceneInterpreter {
     _matrixStack = new MatStack();
     _namedObjects = new HashMap<String, SceneObject>();
     _currVertexBuffer = new ArrayList<Point3>();
+    _accelBufferStack = new Stack<ArrayList<SceneObject>>();
     _currMaterial = null;
   }
   
   private void addObject(SceneObject obj) {
-    if (_accelBuffer.empty()) {
+    if (_accelBufferStack.empty()) {
       _mainScene.addObject(obj);
     } else {
-      _accelBuffer.peek().add(obj);
+      _accelBufferStack.peek().add(obj);
     }
   }
 
@@ -174,9 +175,9 @@ public class SceneInterpreter {
       
       //ACCELERATION
       else if (token[0].equals("begin_accel")) {
-        _accelBuffer = new Stack<ArrayList<SceneObject>>();
+        _accelBufferStack.push(new ArrayList<SceneObject>());
       } else if (token[0].equals("end_accel")) {
-        ArrayList<SceneObject> accelObjects = _accelBuffer.pop();
+        ArrayList<SceneObject> accelObjects = _accelBufferStack.pop();
         
       }
       

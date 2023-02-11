@@ -9,5 +9,5 @@ public Vector3 getOrientedNormal(Ray ray, Vector3 normal) {
       normal = normal.scale(-1);  //Make sure the normal and the ray point in opposite directions.
     }
     
-    return normal;
+    return normal.normalized();
 }    

@@ -104,16 +104,13 @@ public class AABBox extends Primitive {
       float signZ = normalizedZ < 0 ? -1 : 1;
       
       //Add float delta, trunctate by casting to float then int.
+      float epsilon = 0.001;
       Vector3 normal = new Vector3(
-        truncate(normalizedX + signX * 0.001), 
-        truncate(normalizedY + signY * 0.001), 
-        truncate(normalizedZ + signZ * 0.001));
+        truncate(normalizedX + signX * epsilon), 
+        truncate(normalizedY + signY * epsilon), 
+        truncate(normalizedZ + signZ * epsilon));
       
-      //println("Contact Point: ", contactP);
-      //println("Contact Point Obj: ", contactPObjSpace);
-      //println("Normalized: ", new Float3(normalizedX, normalizedY, normalizedZ));
-      //println("Result: " + result);
-      return getOrientedNormal(ray, normal);
+      return normal;
     }
     
     private Bounds getRayTBounds(float x1, float x2, float ox, float rDirX) {
