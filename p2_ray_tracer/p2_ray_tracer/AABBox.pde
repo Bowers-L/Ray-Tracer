@@ -1,4 +1,4 @@
-public class AABBox extends SceneObject {
+public class AABBox extends Primitive {
     private Point3 min;
     private Point3 max;
     
@@ -12,19 +12,22 @@ public class AABBox extends SceneObject {
       }
       
       //returns true if intersection is valid and false if it is invalid
-      private boolean updateIntersection(Bounds newBounds) {
+      public Bounds intersection(Bounds other) {
+
           //Increase the lower bound up (if possible)
-          this.lower = newBounds.lower > this.lower ? newBounds.lower : this.lower;
+          float intersectLower = other.lower > this.lower ? other.lower : this.lower;
           
           //Decrease the upper bound (if possible)
-          this.upper = newBounds.upper < this.upper ? newBounds.upper : this.upper;
+          float intersectUpper = other.upper < this.upper ? other.upper : this.upper;
           
-          //Lower bound should not exceed upper bound
-          if (this.lower > this.upper) {
-              return false;
+          Bounds intersection = new Bounds(intersectLower, intersectUpper);
+          
+          boolean isValidIntersection = intersection.lower <= intersection.upper;
+          if (!isValidIntersection) {
+              return null;
           }
           
-          return true;
+          return intersection;
       }
     }
     
@@ -64,19 +67,19 @@ public class AABBox extends SceneObject {
         //Ray BBox Intersection based on PBR section 4.2.1
         
         Bounds tBoundsX = getRayTBounds(min.x, max.x, r.origin.x, r.direction.x);
-        Bounds tBounds = tBoundsX;
-        
         Bounds tBoundsY = getRayTBounds(min.y, max.y, r.origin.y, r.direction.y);
-        if (!tBounds.updateIntersection(tBoundsY)) {
+        Bounds tBoundsXY = tBoundsX.intersection(tBoundsY);
+        if (tBoundsXY == null) {
             return null;
         }
         
         Bounds tBoundsZ = getRayTBounds(min.z, max.z, r.origin.z, r.direction.z);
-        if (!tBounds.updateIntersection(tBoundsZ)) {
+        Bounds tBoundsXYZ = tBoundsXY.intersection(tBoundsZ);
+        if (tBoundsXYZ == null) {
             return null;
         }
         
-        float t = tBounds.lower;
+        float t = tBoundsXYZ.lower;
         if (t < 0) {
             return null;
         }

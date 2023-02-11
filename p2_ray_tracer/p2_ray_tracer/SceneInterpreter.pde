@@ -1,13 +1,22 @@
+import java.util.Stack;
+
+/* How the Scene Interpreter works
+* When constructing, pass in the root scene file directory relative to the "data" folder (default is ""), and the scene files associated with it.
+* Call interpretSceneAtIndex to interpret one of the files given.
+* Can also call interpretScene(String) to interpret directly from a file
+*/
 public class SceneInterpreter {
   private String sceneFilesDir;  //Relative path from Processing data folder.
   private String[] sceneFileNames;
+  
+  private Scene _mainScene;  //A reference to the scene that's drawn by the interpreter.
 
   //Data structures used to construct the scene.
-  private Scene _mainScene;  //A reference to the scene that's drawn by the interpreter.
   private HashMap<String, SceneObject> _namedObjects = new HashMap<String, SceneObject>();
   private MatStack _matrixStack = new MatStack();
-  ArrayList<Point3> _currVertexBuffer = new ArrayList<Point3>();
-  Material _currMaterial = null;
+  private ArrayList<Point3> _currVertexBuffer = new ArrayList<Point3>();
+  private Stack<ArrayList<SceneObject>> _accelBuffer = new Stack<ArrayList<SceneObject>>();  //Convert to stack of buffers for nested functionality.
+  private Material _currMaterial = null;
 
   public SceneInterpreter(String sceneFilesDir, String[] sceneFileNames) {
     this.sceneFilesDir = sceneFilesDir;
@@ -16,12 +25,15 @@ public class SceneInterpreter {
     reset();
   }
 
-  public void interpretSceneAtIndex(int index) {
-    reset();
-    
+  public void interpretSceneAtIndex(int index) {    
     if (index < sceneFileNames.length) {
       interpretScene(sceneFilesDir + sceneFileNames[index]);
     }
+  }
+  
+  public void interpretScene(String sceneFile) {
+    reset();
+    interpretSceneRecursive(sceneFile);  
   }
   
   private void reset() {
@@ -31,9 +43,17 @@ public class SceneInterpreter {
     _currVertexBuffer = new ArrayList<Point3>();
     _currMaterial = null;
   }
+  
+  private void addObject(SceneObject obj) {
+    if (_accelBuffer.empty()) {
+      _mainScene.addObject(obj);
+    } else {
+      _accelBuffer.peek().add(obj);
+    }
+  }
 
   // this routine helps parse the text in a scene description file
-  private void interpretScene(String file) {
+  private void interpretSceneRecursive(String file) {
     println("Parsing '" + file + "'");
     String str[] = loadStrings(file);
     if (str == null) {
@@ -96,7 +116,7 @@ public class SceneInterpreter {
         Triangle t = new Triangle(_currVertexBuffer.get(0), _currVertexBuffer.get(1), _currVertexBuffer.get(2), _currMaterial);
         t.transform(_matrixStack.top());
         //println(ro);
-        _mainScene.addObject(t);
+        addObject(t);
       }
       
       //BOX PRIMITIVE
@@ -114,7 +134,7 @@ public class SceneInterpreter {
         AABBox box = new AABBox(_currMaterial, min, max);
         box.transform(_matrixStack.top());
         
-        _mainScene.addObject(box);
+        addObject(box);
       }
       
       //NAMED OBJECT
@@ -126,7 +146,7 @@ public class SceneInterpreter {
       } else if (token[0].equals("instance")) {
         String objectName = token[1];
         ObjectInstance instance = new ObjectInstance(_namedObjects.get(objectName), _matrixStack.top());
-          _mainScene.addObject(instance);
+        addObject(instance);
       }
       
       //MATRIX STACK
@@ -152,11 +172,18 @@ public class SceneInterpreter {
         _matrixStack.pop();
       } 
       
+      //ACCELERATION
+      else if (token[0].equals("begin_accel")) {
+        _accelBuffer = new Stack<ArrayList<SceneObject>>();
+      } else if (token[0].equals("end_accel")) {
+        ArrayList<SceneObject> accelObjects = _accelBuffer.pop();
+        
+      }
+      
       //SCENE COMMANDS
       else if (token[0].equals("read")) {
-        interpretScene(sceneFilesDir + token[1]);
-      } 
-      else if (token[0].equals("render")) {
+        interpretSceneRecursive(sceneFilesDir + token[1]);
+      } else if (token[0].equals("render")) {
         _mainScene.render();
       } else if (token[0].equals("#")) {
         // comment (ignore)

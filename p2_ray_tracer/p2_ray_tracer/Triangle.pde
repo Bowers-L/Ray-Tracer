@@ -1,4 +1,4 @@
-public class Triangle extends SceneObject {
+public class Triangle extends Primitive {
   public Point3 p1;
   public Point3 p2;
   public Point3 p3;

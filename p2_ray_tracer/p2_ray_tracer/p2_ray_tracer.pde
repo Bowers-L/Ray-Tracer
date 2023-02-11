@@ -6,13 +6,15 @@
 /*
 * Author: Logan Bowers
 * Important Notes:
-* - Scenes are represented as SceneObject
+* - Most of the starter/rendering code has been migrated to the Scene and SceneInterpreter classes.
+* - The actual raytracing is done in the Scene class.
+* - Some files contain multiple smaller classes. This is mainly to save tab space in the Processing IDE by grouping related functionality together. 
 */
 
 import java.util.Arrays;
 import java.util.HashMap;
 
-//Where scene files are located.
+//Where are the scene files located?
 final String p1b_dir = "P1B/";
 final String p2_dir = "";
 final String[] p1b_scenes = {"s1.cli", "s2.cli", "s3.cli", "s4.cli", "s5.cli", "s6.cli"};
@@ -20,13 +22,15 @@ final String[] p2_scenes = {"s01.cli", "s02.cli", "s03.cli", "s04.cli", "s05.cli
 
 boolean debug_flag = false;
 
-SceneInterpreter _interpreter = new SceneInterpreter(p2_dir, p2_scenes);
+SceneInterpreter _interpreter;
 
 void setup() {
     size(300, 300);
     noStroke();
     background(color(0, 0, 0, 0));
     colorMode(RGB, 1.0);
+    
+    _interpreter = new SceneInterpreter(p2_dir, p2_scenes);
 }
 
 void keyPressed() {

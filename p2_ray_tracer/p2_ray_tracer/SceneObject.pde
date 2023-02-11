@@ -1,11 +1,3 @@
-public abstract class SceneObject implements IntersectsRay {
-  public Material surfaceMat;
-
-  public SceneObject(Material surface) {
-    this.surfaceMat = surface;
-  }
-  
-  public abstract void transform(Mat4f transMat);
-  
+public abstract class SceneObject implements Raycastable {
   public abstract AABBox getBoundingBox();
 }
