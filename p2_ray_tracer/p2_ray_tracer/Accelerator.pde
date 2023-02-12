@@ -1,25 +1,21 @@
-public class Accelerator extends SceneObject {
+public abstract class Accelerator extends SceneObject {
   
-  ArrayList<SceneObject> _objects;
+  protected ArrayList<SceneObject> _objects;
+  
   public Accelerator(ArrayList<SceneObject> objects) {
     //Put objects into nodes, bounding boxes, etc.
     _objects = objects;
+    build();
   }
   
-  public AABBox getBoundingBox() {
-    return null;
-  }
-
-  public RaycastHit raycast(Ray ray) {
-      return null;
-  }
+  public abstract void build();
   
-  public String toString() {
-    String result = "Accelerator with objects: \n";
-    for (SceneObject obj : _objects) {
-      result += obj + "\n";
-    }
+  //public String toString() {
+  //  String result = String.format("Accelerator with %d objects: \n", _objects.size());
+  //  for (SceneObject obj : _objects) {
+  //    result += String.format("%s \n", obj);
+  //  }
     
-    return result;
-  }
+  //  return result;
+  //}
 }

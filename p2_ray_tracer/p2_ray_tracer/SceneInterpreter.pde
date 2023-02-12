@@ -114,10 +114,10 @@ public class SceneInterpreter {
         Point3 vertex = new Point3(x, y, z);
         _currVertexBuffer.add(vertex);
       } else if (token[0].equals("end")) {
-        Triangle t = new Triangle(_currVertexBuffer.get(0), _currVertexBuffer.get(1), _currVertexBuffer.get(2));
+        Triangle t = new Triangle(_currVertexBuffer);
         t.transform(_matrixStack.top());
         //println(ro);
-        addObject(new Primitive(t, _currMaterial));
+        addObject(new GeometricObject(t, _currMaterial));
       }
       
       //BOX PRIMITIVE
@@ -135,7 +135,7 @@ public class SceneInterpreter {
         AABBox box = new AABBox(min, max);
         box.transform(_matrixStack.top());
         
-        addObject(new Primitive(box, _currMaterial));
+        addObject(new GeometricObject(box, _currMaterial));
       }
       
       //NAMED OBJECT
@@ -178,7 +178,7 @@ public class SceneInterpreter {
         _accelBufferStack.push(new ArrayList<SceneObject>());
       } else if (token[0].equals("end_accel")) {
         ArrayList<SceneObject> accelObjects = _accelBufferStack.pop();
-        Accelerator accelObj = new Accelerator(accelObjects);
+        Accelerator accelObj = new BVHAccel(accelObjects);
         println("Added " + accelObj);
         addObject(accelObj);
       }

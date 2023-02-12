@@ -19,7 +19,7 @@ public class Plane extends Shape {
   }
   
   public Plane(Triangle t) {
-    this(t.p1, t.p2, t.p3); 
+    this(t.points[0], t.points[1], t.points[2]); 
   }
   
   public float evaluateObjectiveFunction(Point3 p) {
@@ -37,7 +37,7 @@ public class Plane extends Shape {
   
   @Override
   public AABBox getBoundingBox() {
-    return null;  //Planes are infinite and don't have bounding boxes.  
+    return null;  //Planes are infinite and don't have bounding boxes (This violates LSP, so might reconstruct later).  
   }
   
   @Override

@@ -1,12 +1,25 @@
 public class Float3 {
-  public float x;
-  public  float y;
-  public float z;
+  public Float x;
+  public  Float y;
+  public Float z;
 
   public Float3(float x, float y, float z) {
     this.x = x;
     this.y = y;
     this.z = z;
+  }
+ 
+  public Float p(int dim) {
+    //Shortcut way to access value at a specific dimension.
+    return asArray()[dim];  
+  }
+  
+  public Float[] asArray() {
+    return new Float[] {x, y, z};  
+  }
+  
+  public void setAtIndex() {
+    
   }
 
   public float dot(Float3 other) {

@@ -1,10 +1,10 @@
-//Reference: pbrt 4.1
-public class Primitive extends SceneObject {
-
+//NOTE: The Primitive class in the PBR book is closer to the SceneObject class in this project.
+//Geometric Objects are only used to render basic shapes with a material.
+public class GeometricObject extends SceneObject {
     public Shape shape;  //Describes the geometric properties
     public Material material;  //Describes the render properties of the primitive.
     
-    public Primitive(Shape shape, Material surface) {
+    public GeometricObject(Shape shape, Material surface) {
       this.shape = shape;
       this.material = surface;
     }
@@ -26,5 +26,12 @@ public class Primitive extends SceneObject {
         float dist = ray.origin.distanceTo(contact.point);
         return new RaycastHit(this, contact, dist);
       }
+    }
+    
+    public String toString() {
+      String result = "Geometric Primitive:\n"; 
+      result += "\t" + shape + "\n";
+      result += "\t" + material + "\n";
+      return result;
     }
 }

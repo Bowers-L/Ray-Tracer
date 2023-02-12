@@ -1,17 +1,22 @@
 public class Triangle extends Shape {
-  public Point3 p1;
-  public Point3 p2;
-  public Point3 p3;
+  public Point3[] points = new Point3[3];
 
-  public Triangle(Point3 p1, Point3 p2, Point3 p3) {
-    this.p1 = p1;
-    this.p2 = p2;
-    this.p3 = p3;
+  public Triangle(Point3[] points) {
+    if (points.length != 3) {
+        println("Error: Triangle should have 3 points.");
+    }
+    this.points = points;
+  }
+  
+  public Triangle(ArrayList<Point3> points) {
+    this.points[0] = points.get(0);
+    this.points[1] = points.get(1);
+    this.points[2] = points.get(2);
   }
 
   public Vector3 getNormal() {
-    Vector3 ab = new Vector3(p1, p2);
-    Vector3 bc = new Vector3(p2, p3);
+    Vector3 ab = new Vector3(points[0], points[1]);
+    Vector3 bc = new Vector3(points[1], points[2]);
 
     return ab.cross(bc).normalized();
   }
@@ -19,9 +24,9 @@ public class Triangle extends Shape {
   public boolean pointInside(Point3 point) {
     Vector3 n = getNormal();
 
-    int side1 = getSide(point, p1, p2, n);
-    int side2 = getSide(point, p2, p3, n);
-    int side3 = getSide(point, p3, p1, n);
+    int side1 = getSide(point, points[0], points[1], n);
+    int side2 = getSide(point, points[1], points[2], n);
+    int side3 = getSide(point, points[2], points[0], n);
 
     //Also need to consider if the point is on one of the edges.
     //We have to check all 3 combinations because of the "edge" case (One or more sides could be 0)
@@ -69,18 +74,44 @@ public class Triangle extends Shape {
   
   @Override
   public void transform(Mat4f transMat) {
-    p1 = transMat.multiply(p1);
-    p2 = transMat.multiply(p2);
-    p3 = transMat.multiply(p3);
+    for (int i = 0; i < 3; i++) {
+      points[i] = transMat.multiply(points[i]);
+    }
   }
   
   @Override 
   public AABBox getBoundingBox() {
-    return null;
+    Point3 min = new Point3(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
+    Point3 max = new Point3(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
+    
+    for (int i = 0; i < 3; i++) {
+      if (points[i].x < min.x) {
+        min.x = points[i].x;
+      }
+      if (points[i].x > max.x) {
+        max.x = points[i].x;  
+      }
+      
+      if (points[i].y < min.y) {
+        min.y = points[i].y;  
+      }
+      if (points[i].y > max.y) {
+        max.y = points[i].y;  
+      }
+      
+      if (points[i].z < min.z) {
+        min.z = points[i].z;  
+      }
+      if (points[i].z > max.z) {
+        max.z = points[i].z;  
+      }
+    }
+    
+    return new AABBox(min, max);
   }
 
   @Override
     public String toString() {
-    return String.format("Triangle: %s, %s, %s", p1.toString(), p2.toString(), p3.toString());
+    return String.format("Triangle: %s, %s, %s", points[0].toString(), points[1].toString(), points[2].toString());
   }
 }

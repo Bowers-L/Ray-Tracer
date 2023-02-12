@@ -1,10 +1,12 @@
 public class AABBox extends Shape {
-  private Point3 min;
-  private Point3 max;
+  private Bounds3 _bounds;
+
+  public AABBox(Bounds3 bounds) {
+    this._bounds = bounds;
+  }
 
   public AABBox(Point3 min, Point3 max) {
-    this.min = min;
-    this.max = max;
+    this(new Bounds3(min, max));
   }
 
   @Override
@@ -15,8 +17,8 @@ public class AABBox extends Shape {
 
   @Override
     public void transform(Mat4f transMat) {
-    min = transMat.multiply(min);
-    max = transMat.multiply(max);
+    _bounds.min = transMat.multiply(_bounds.min);
+    _bounds.max = transMat.multiply(_bounds.max);
   }
 
   @Override
@@ -24,27 +26,31 @@ public class AABBox extends Shape {
     return this;
   }
 
+  public Bounds3 bounds() {
+    return _bounds;
+  }
+
   public Vector3 halfExtents() {
-    Vector3 halfExtents = new Vector3(min, max);
+    Vector3 halfExtents = new Vector3(_bounds.min, _bounds.max);
     return halfExtents.scale(0.5);
   }
 
-  public Point3 center() {
-    return min.add(halfExtents());
+  public Point3 getCentroid() {
+    return _bounds.min.add(halfExtents());
   }
 
   private Point3 getIntersectionPoint(Ray r) {
     //Ray BBox Intersection based on PBR section 4.2.1
 
-    Bounds tBoundsX = getRayTBounds(min.x, max.x, r.origin.x, r.direction.x);
-    Bounds tBoundsY = getRayTBounds(min.y, max.y, r.origin.y, r.direction.y);
-    Bounds tBoundsXY = tBoundsX.intersection(tBoundsY);
+    Bounds1 tBoundsX = getRayTBounds(_bounds.min.x, _bounds.max.x, r.origin.x, r.direction.x);
+    Bounds1 tBoundsY = getRayTBounds(_bounds.min.y, _bounds.max.y, r.origin.y, r.direction.y);
+    Bounds1 tBoundsXY = tBoundsX.intersection(tBoundsY);
     if (!tBoundsXY.isValid()) {
       return null;
     }
 
-    Bounds tBoundsZ = getRayTBounds(min.z, max.z, r.origin.z, r.direction.z);
-    Bounds tBoundsXYZ = tBoundsXY.intersection(tBoundsZ);
+    Bounds1 tBoundsZ = getRayTBounds(_bounds.min.z, _bounds.max.z, r.origin.z, r.direction.z);
+    Bounds1 tBoundsXYZ = tBoundsXY.intersection(tBoundsZ);
     if (!tBoundsXYZ.isValid()) {
       return null;
     }
@@ -59,7 +65,7 @@ public class AABBox extends Shape {
 
   private Vector3 getNormal(Point3 contactP) {
     //Translate the box to (0, 0, 0)
-    Vector3 centerToOrigin = new Vector3(center(), new Point3(0, 0, 0));
+    Vector3 centerToOrigin = new Vector3(getCentroid(), new Point3(0, 0, 0));
     Point3 contactPObjSpace = contactP.add(centerToOrigin);
 
     Vector3 halfBoxSize = halfExtents();
@@ -83,40 +89,24 @@ public class AABBox extends Shape {
     return normal;
   }
 
-  private Bounds getRayTBounds(float x1, float x2, float ox, float rDirX) {
+  private Bounds1 getRayTBounds(float x1, float x2, float ox, float rDirX) {
     //t = (x - a_x) / b_x
     float rDirInv = 1./ rDirX;
     float t1 = (x1 - ox) * rDirInv;
     float t2 = (x2 - ox) * rDirInv;
 
-    return t1 > t2 ? new Bounds(t2, t1) : new Bounds(t1, t2);
+    return t1 > t2 ? new Bounds1(t2, t1) : new Bounds1(t1, t2);
   }
 }
 
-public class Bounds {
-  public float lower;
-  public float upper;
-
-  public Bounds(float lower, float upper) {
-    this.lower = lower;
-    this.upper = upper;
+public AABBox union(AABBox box1, AABBox box2) {
+  if (box1 == null && box2 == null) {
+    return null;
   }
 
-  //returns true if intersection is valid and false if it is invalid
-  public Bounds intersection(Bounds other) {
-
-    //Increase the lower bound up (if possible)
-    float intersectLower = other.lower > this.lower ? other.lower : this.lower;
-
-    //Decrease the upper bound (if possible)
-    float intersectUpper = other.upper < this.upper ? other.upper : this.upper;
-
-    Bounds intersection = new Bounds(intersectLower, intersectUpper);
-
-    return intersection;
+  if (box1 == null || box2 == null) {
+    return box1 == null ? box2 : box1;
   }
 
-  public boolean isValid() {
-    return this.lower <= this.upper;
-  }
+  return new AABBox(union(box1.bounds(), box2.bounds()));
 }

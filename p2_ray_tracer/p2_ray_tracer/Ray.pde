@@ -31,11 +31,11 @@ public class SurfaceContact {
 
 //Useful information returned from raycast
 public class RaycastHit {
-  public Primitive obj;
+  public GeometricObject obj;
   public SurfaceContact contact;
   public float distance;
   
-  public RaycastHit(Primitive obj, SurfaceContact intersection, float distance) {
+  public RaycastHit(GeometricObject obj, SurfaceContact intersection, float distance) {
     this.obj = obj;
     this.contact = intersection;
     this.distance = distance;
