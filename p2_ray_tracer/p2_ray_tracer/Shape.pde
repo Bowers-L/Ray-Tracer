@@ -1,3 +1,4 @@
+//This exists to make ray/shape intersections more modular and less confusing.
 public abstract class Shape {
   public final float rayEpsilon = 0.0001;  //How far in front a ray should be for its intersection to count.
     

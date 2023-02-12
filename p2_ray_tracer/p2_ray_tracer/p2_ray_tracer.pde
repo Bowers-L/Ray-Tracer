@@ -5,7 +5,7 @@
 * -   Build Time is the time it takes from the start of parsing a scene file to the first render call.
 * -   Render Time is the time it takes from the first render call to when rendering is finished.
 * -   What I found was that build time can sometimes exceed render time for scenes with a large number of objects (such as Bun69k).
-* -   This is ESPECIALLY true for scenes with small, high poly objects (s09.cli, s10.cli), since it still has to build the tree, but a large number of rays will miss the objects entirely.
+* -   This is ESPECIALLY true for scenes with small, high poly objects (s09.cli, s10.cli, s11.cli), since it still has to build the tree, but a large number of rays will miss the objects entirely.
 
 * - Most of the starter/rendering code has been migrated to the Scene and SceneInterpreter classes.
 * - The actual raytracing and shading is done in the Scene class.
@@ -14,6 +14,8 @@
   -   Ray.pde contains SurfaceContact and RaycastHit
   -   Float3.pde contains Point3 and Vector3
   -   BVH.pde contains the entire Bounding Volume Heirarchy implementation, including helper structures.
+  - I tried to architect the code in a way that made sense and leave comments for parts requiring further explanation.
+    Since this is a 1.6k line project at this point, some parts might be more documented than others. 
 */
 
 import java.util.Arrays;
