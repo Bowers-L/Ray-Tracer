@@ -179,7 +179,7 @@ public class SceneInterpreter {
       } else if (token[0].equals("end_accel")) {
         ArrayList<SceneObject> accelObjects = _accelBufferStack.pop();
         Accelerator accelObj = new BVHAccel(accelObjects);
-        println("Added " + accelObj);
+        //println("Added " + accelObj);
         addObject(accelObj);
       }
       

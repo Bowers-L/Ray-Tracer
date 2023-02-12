@@ -54,7 +54,10 @@ public class BVHAccel extends Accelerator {
     //Initialize object data.
     initBuildData();
     _objectsInOrder = new ArrayList<SceneObject>();
-    _root = buildBVHTreeRecursive(0, _objects.size(), new BVHSplitMidpoint());
+    println("Num Objects to do: " + _objects.size()); 
+    
+    //iterations = 0;
+    _root = buildBVHTreeRecursive(0, _objects.size(), new BVHSplitMidpoint(), 0);
   }
 
   private void initBuildData() {
@@ -66,9 +69,16 @@ public class BVHAccel extends Accelerator {
   }
 
   //Interval of objs is [startI, endI) (endI is exclusive)
-  private BVHNode buildBVHTreeRecursive(int startI, int endI, BVHSplitStrategy splitStrategy) {
-    if (startI >= endI) {
-      println("Error: BVH Tree is Empty");
+  //int iterations;
+  private BVHNode buildBVHTreeRecursive(int startI, int endI, BVHSplitStrategy splitStrategy, int depth) {
+    //iterations++;
+    //if (iterations > 1000) {
+    //  return null;
+    //}
+    
+    println(getTabs(depth) + String.format("Start-End: (%d, %d)", startI, endI));
+    if (startI > endI) {
+      //println("Error: BVH Tree is Empty");
       return null;
     }
 
@@ -76,7 +86,7 @@ public class BVHAccel extends Accelerator {
 
     AABBox bbox = getBBoxAroundObjects(startI, endI);
 
-    if (nObjects == 1) {
+    if (nObjects <= 1) {
       //BASE CASE (Leaf Node)
       return createLeaf(bbox, startI, endI);
     }
@@ -96,10 +106,17 @@ public class BVHAccel extends Accelerator {
     }
 
     int midI = splitStrategy.split(_buildData, startI, endI, splitDim, splitBounds);
+    
+    //EMPTY SETS ARE NOT ALLOWED!!!
+    if (startI == midI) {
+      midI++;
+    } else if (midI == endI) {
+      midI--;
+    }
 
     return new BVHInteriorNode(bbox, splitDim,
-      buildBVHTreeRecursive(startI, midI, splitStrategy),
-      buildBVHTreeRecursive(midI, endI, splitStrategy)
+      buildBVHTreeRecursive(startI, midI, splitStrategy, depth+1),
+      buildBVHTreeRecursive(midI, endI, splitStrategy, depth+1)
       );
   }
 
@@ -133,7 +150,7 @@ public class BVHAccel extends Accelerator {
 
     RaycastHit closestHit = new RaycastHit(null, null, Float.MAX_VALUE);
     raycastRecurse(ray, _root, closestHit, 0, Integer.MAX_VALUE);
-    
+
     return closestHit.obj == null ? null : closestHit;
   }
 
@@ -143,6 +160,7 @@ public class BVHAccel extends Accelerator {
     }
 
     SurfaceContact contact = curr.bbox.intersection(ray);
+    
     if (contact != null) {
       if (currDepth >= maxDepth) {
         //Debugging
@@ -185,10 +203,8 @@ public class BVHAccel extends Accelerator {
   }
 
   public String updateStringPreorder(String str, BVHNode curr, int depth) {
-    String tabs = "";
-    for (int i = 0; i < depth; i++) {
-      tabs += "\t";  //Indent number of times based on depth
-    }
+    String tabs = getTabs(depth);
+
     if (curr instanceof BVHLeafNode) {
       BVHLeafNode leaf = (BVHLeafNode) curr;
       str += tabs + String.format(" Leaf Node with BoundingBox: %s\n\n", curr.bbox);
@@ -207,6 +223,15 @@ public class BVHAccel extends Accelerator {
     }
 
     return str;
+  }
+
+  private String getTabs(int depth) {
+    String tabs = "";
+    for (int i = 0; i < depth; i++) {
+      tabs += "\t";  //Indent number of times based on depth
+    }
+    
+    return tabs;
   }
 
   public abstract class BVHSplitStrategy {
