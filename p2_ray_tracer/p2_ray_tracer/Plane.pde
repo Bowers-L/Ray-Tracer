@@ -31,8 +31,9 @@ public class Plane extends Shape {
   }
   
   @Override
-  public void transform(Mat4f transMat) {
+  public Shape transform(Mat4f transMat) {
     //Don't need to transform planes
+    return this;
   }
   
   @Override

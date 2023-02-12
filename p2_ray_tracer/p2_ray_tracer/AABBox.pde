@@ -16,9 +16,8 @@ public class AABBox extends Shape {
   }
 
   @Override
-    public void transform(Mat4f transMat) {
-    _bounds.min = transMat.multiply(_bounds.min);
-    _bounds.max = transMat.multiply(_bounds.max);
+    public Shape transform(Mat4f transMat) {
+    return new AABBox(transMat.multiply(_bounds.min), transMat.multiply(_bounds.max));
   }
 
   @Override

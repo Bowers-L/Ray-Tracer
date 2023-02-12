@@ -12,7 +12,8 @@ public class ObjectInstance extends SceneObject {
 
   @Override
     public AABBox getBoundingBox() {
-    return null;
+    //Doesn't work for rotations
+    return (AABBox) objReference.getBoundingBox().transform(objToWorld);
   }
 
   @Override

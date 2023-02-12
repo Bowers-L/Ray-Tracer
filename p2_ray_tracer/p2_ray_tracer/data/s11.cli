@@ -1,5 +1,243 @@
 # Create a scene that includes many, many instances of one of the large meshes:
 # bunny, buddha, dragon, or lucy.
 
-render
+fov 60
 
+# blue background
+
+background 0.5 0.2 .8
+
+# light sources 
+
+light  3 4  0  .8 .8 .8
+light -3 4  0  .2 .2 .2
+
+# these two triangles acts as a ground plane
+
+surface  .8 .8 .8
+
+begin
+vertex -100 -1 -100
+vertex  100 -1 -100
+vertex  100 -1  100
+end
+
+begin
+vertex  100 -1  100
+vertex -100 -1  100
+vertex -100 -1 -100
+end
+
+# The actual scene
+
+# Objects
+
+surface  .1 .2 .7
+
+begin_accel
+read dragon_100k.cli
+end_accel
+
+named_object blue_dragon
+
+surface  .1 .7 .2
+
+begin_accel
+read dragon_100k.cli
+end_accel
+
+named_object green_dragon
+
+surface  .7 .1 .3
+
+begin_accel
+read dragon_100k.cli
+end_accel
+
+named_object red_dragon
+
+begin_accel
+push
+
+instance green_dragon
+
+push
+
+translate 3 0 0
+
+instance green_dragon
+
+translate 3 0 0
+
+instance green_dragon
+
+translate 3 0 0
+
+instance green_dragon
+
+pop
+
+push
+
+translate -3 0 0
+
+instance green_dragon
+
+translate -3 0 0
+
+instance green_dragon
+
+translate -3 0 0
+
+instance green_dragon
+
+pop
+
+pop
+end_accel
+named_object green_row
+
+begin_accel
+push
+    translate 1 0 0
+
+    push
+        scale 1 1 1
+        instance red_dragon
+    pop
+
+    push
+        translate 3 0 0
+
+        push
+            scale 1 1 1
+            instance red_dragon
+        pop
+
+        translate 3 0 0
+
+        push
+            scale 1 1 1
+            instance red_dragon
+        pop
+
+        translate 3 0 0
+
+        push
+            scale 1 1 1
+            instance red_dragon
+        pop
+    pop
+
+    push
+
+        translate -3 0 0
+
+        push
+            scale 1 1 1
+            instance red_dragon
+        pop
+
+        translate -3 0 0
+
+        push
+            scale 1 1 1
+            instance red_dragon
+        pop
+
+        translate -3 0 0
+
+        push
+            scale 1 1 1
+            instance red_dragon
+        pop
+    pop
+pop
+end_accel
+named_object red_row
+
+push 
+
+translate 0 0 -25
+
+instance green_row
+
+translate 0 1.8 0
+
+instance red_row
+
+translate 0 1.9 0
+
+instance green_row
+
+translate 0 1.8 0
+
+instance red_row
+
+translate 0 1.9 0
+
+instance green_row
+
+translate 0 1.8 0
+
+instance red_row
+
+translate 0 1.9 0
+
+instance green_row
+
+pop
+
+push
+
+    translate 0 0 -3
+
+    push 
+        translate -1 -0.6 0
+        scale -0.5 0.5 0.5
+        rotate 45 0 1 0
+        instance blue_dragon
+    pop
+
+    push 
+        translate 1 -0.6 0
+        scale 0.5 0.5 0.5
+        rotate 45 0 1 0
+        instance blue_dragon
+    pop
+
+    translate 0 0 -2
+
+    push 
+        translate -1 -0.6 0
+        scale -0.5 0.5 0.5
+        rotate 45 0 1 0
+        instance blue_dragon
+    pop
+
+    push 
+        translate 1 -0.6 0
+        scale 0.5 0.5 0.5
+        rotate 45 0 1 0
+        instance blue_dragon
+    pop
+
+    translate 0 0 -2
+
+    push 
+        translate -1 -0.6 0
+        scale -0.5 0.5 0.5
+        rotate 45 0 1 0
+        instance blue_dragon
+    pop
+
+    push 
+        translate 1 -0.6 0
+        scale 0.5 0.5 0.5
+        rotate 45 0 1 0
+        instance blue_dragon
+    pop
+
+pop
+
+render

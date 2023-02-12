@@ -1,7 +1,7 @@
 /*
 * Implementation Notes:
 * - I used an out of place implementation for partitioning objects into nodes in order to differentiate it from the pbrt implementation.
-* - This has the advantage of being simpler to understand and not needing to modify the object list directly, but has a space overhead compared to the in-place implementation.
+* - This has the advantage of being simpler to understand and preserving immutability of the object list, but has a space overhead compared to the in-place implementation.
 * - Build time is also slightly slower, but render time remains the same.
 */
 public class BVH extends Accelerator {
@@ -156,8 +156,12 @@ public class BVH extends Accelerator {
   }
 
   private void updateClosestHit(RaycastHit hit, RaycastHit closestHit) {
+    if (closestHit == null) {
+      throw new IllegalArgumentException("Need to initialize closestHit before passing it!");
+    }
+    
     //No pointers in Java, so you have to update the obj's properties, not assign to it.
-    boolean shouldUpdateClosest = hit != null && (closestHit == null || hit.distance < closestHit.distance);
+    boolean shouldUpdateClosest = hit != null && hit.distance < closestHit.distance;
     if (shouldUpdateClosest) {
       closestHit.obj = hit.obj;
       closestHit.contact = hit.contact;

@@ -9,13 +9,4 @@ public abstract class Accelerator extends SceneObject {
   }
   
   public abstract void build();
-  
-  //public String toString() {
-  //  String result = String.format("Accelerator with %d objects: \n", _objects.size());
-  //  for (SceneObject obj : _objects) {
-  //    result += String.format("%s \n", obj);
-  //  }
-    
-  //  return result;
-  //}
 }

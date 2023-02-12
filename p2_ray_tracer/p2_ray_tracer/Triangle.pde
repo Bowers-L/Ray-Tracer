@@ -73,10 +73,13 @@ public class Triangle extends Shape {
   }
   
   @Override
-  public void transform(Mat4f transMat) {
+  public Shape transform(Mat4f transMat) {
+    Point3[] newPoints = new Point3[3];
     for (int i = 0; i < 3; i++) {
-      points[i] = transMat.multiply(points[i]);
+      newPoints[i] = transMat.multiply(points[i]);
     }
+    
+    return new Triangle(newPoints);
   }
   
   @Override 

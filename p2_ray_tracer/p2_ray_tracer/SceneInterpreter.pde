@@ -122,7 +122,7 @@ public class SceneInterpreter {
         _currVertexBuffer.add(vertex);
       } else if (token[0].equals("end")) {
         Triangle t = new Triangle(_currVertexBuffer);
-        t.transform(_matrixStack.top());
+        t = (Triangle) t.transform(_matrixStack.top());
         //println(ro);
         addObject(new GeometricObject(t, _currMaterial));
       }
@@ -140,17 +140,17 @@ public class SceneInterpreter {
         Point3 max = new Point3(xmax, ymax, zmax);
         
         AABBox box = new AABBox(min, max);
-        box.transform(_matrixStack.top());
+        box = (AABBox) box.transform(_matrixStack.top());
         
         addObject(new GeometricObject(box, _currMaterial));
       }
       
       //NAMED OBJECT
       else if (token[0].equals("named_object")) {
-          String objectName = token[1];
-          SceneObject objectReference = _mainScene.sceneObjects().remove(_mainScene.sceneObjects().size()-1);
-          //println("Added object", objectName, " with reference to ", objectReference);
-          _namedObjects.put(objectName, objectReference);
+        String objectName = token[1];
+        SceneObject objectReference = _mainScene.sceneObjects().remove(_mainScene.sceneObjects().size()-1);
+        //println("Added object", objectName, " with reference to ", objectReference);
+        _namedObjects.put(objectName, objectReference);
       } else if (token[0].equals("instance")) {
         String objectName = token[1];
         ObjectInstance instance = new ObjectInstance(_namedObjects.get(objectName), _matrixStack.top());

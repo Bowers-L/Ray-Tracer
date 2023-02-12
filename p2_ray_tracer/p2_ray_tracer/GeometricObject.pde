@@ -2,7 +2,7 @@
 //Geometric Objects are only used to render basic shapes with a material.
 public class GeometricObject extends SceneObject {
     public Shape shape;  //Describes the geometric properties
-    public Material material;  //Describes the render properties of the primitive.
+    public Material material;  //Describes the render properties
     
     public GeometricObject(Shape shape, Material surface) {
       this.shape = shape;
@@ -22,7 +22,6 @@ public class GeometricObject extends SceneObject {
       if (contact == null) {
         return null;
       } else {
-        //The object has to be in front by at least a tiny bit for it to count.
         float dist = ray.origin.distanceTo(contact.point);
         return new RaycastHit(this, contact, dist);
       }
