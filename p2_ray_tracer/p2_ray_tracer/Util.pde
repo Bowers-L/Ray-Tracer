@@ -41,3 +41,11 @@ public <T> int hoarePartition(ArrayList<T> items, int left, int right, Predicate
     r--;
   }
 }
+
+public void print_timer(int startTime)
+{
+  int new_timer = millis();
+  int diff = new_timer - startTime;
+  float seconds = diff / 1000.0;
+  println ("Render Time = " + seconds);
+}

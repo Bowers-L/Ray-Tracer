@@ -17,6 +17,8 @@ public class SceneInterpreter {
   private ArrayList<Point3> _currVertexBuffer = new ArrayList<Point3>();
   private Stack<ArrayList<SceneObject>> _accelBufferStack = new Stack<ArrayList<SceneObject>>();
   private Material _currMaterial = null;
+  
+  private int timer;
 
   public SceneInterpreter(String sceneFilesDir, String[] sceneFileNames) {
     this.sceneFilesDir = sceneFilesDir;
@@ -33,6 +35,7 @@ public class SceneInterpreter {
   
   public void interpretScene(String sceneFile) {
     reset();
+    timer = millis();
     interpretSceneRecursive(sceneFile);  
   }
   
@@ -178,7 +181,7 @@ public class SceneInterpreter {
         _accelBufferStack.push(new ArrayList<SceneObject>());
       } else if (token[0].equals("end_accel")) {
         ArrayList<SceneObject> accelObjects = _accelBufferStack.pop();
-        Accelerator accelObj = new BVHAccel(accelObjects);
+        Accelerator accelObj = new BVH(accelObjects);
         //println("Added " + accelObj);
         addObject(accelObj);
       }

@@ -44,13 +44,13 @@ public class AABBox extends Shape {
 
     Bounds1 tBoundsX = getRayTBounds(_bounds.min.x, _bounds.max.x, r.origin.x, r.direction.x);
     Bounds1 tBoundsY = getRayTBounds(_bounds.min.y, _bounds.max.y, r.origin.y, r.direction.y);
-    Bounds1 tBoundsXY = tBoundsX.intersection(tBoundsY);
+    Bounds1 tBoundsXY = boundsUtil.intersection(tBoundsX, tBoundsY);
     if (!tBoundsXY.isValid()) {
       return null;
     }
 
     Bounds1 tBoundsZ = getRayTBounds(_bounds.min.z, _bounds.max.z, r.origin.z, r.direction.z);
-    Bounds1 tBoundsXYZ = tBoundsXY.intersection(tBoundsZ);
+    Bounds1 tBoundsXYZ = boundsUtil.intersection(tBoundsXY, tBoundsZ);
     if (!tBoundsXYZ.isValid()) {
       return null;
     }
@@ -115,5 +115,5 @@ public AABBox union(AABBox box1, AABBox box2) {
     return box1 == null ? box2 : box1;
   }
 
-  return new AABBox(union(box1.bounds(), box2.bounds()));
+  return new AABBox(boundsUtil.union(box1.bounds(), box2.bounds()));
 }

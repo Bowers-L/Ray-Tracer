@@ -16,7 +16,6 @@ public class Ray {
   }
 }
 
-//Reference: pbrt 2.10.1 (SurfaceInteraction class)
 public class SurfaceContact {
   //Simplified version that just gets the point and normal at the surface.
   public Point3 point;

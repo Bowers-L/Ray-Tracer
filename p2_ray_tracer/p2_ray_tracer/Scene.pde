@@ -63,14 +63,6 @@ public class Scene {
   {
     timer = millis();
   }
-  
-  private void print_timer()
-  {
-    int new_timer = millis();
-    int diff = new_timer - timer;
-    float seconds = diff / 1000.0;
-    println ("timer = " + seconds);
-  }
 
   //Contains the logic for shading a single pixel using classical RT with an eye hit.
   private color shade(RaycastHit eyeHit) {
