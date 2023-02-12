@@ -23,9 +23,9 @@ public class BVHAccel extends Accelerator {
     public int indexOffset;
     public int numObjects;
     public BVHLeafNode(AABBox bbox, int offset, int nObj) {
+      this.bbox = bbox;
       this.indexOffset = offset;
       this.numObjects = nObj;
-      this.bbox = bbox;
     }
   }
 
@@ -54,7 +54,7 @@ public class BVHAccel extends Accelerator {
     //Initialize object data.
     initBuildData();
     _objectsInOrder = new ArrayList<SceneObject>();
-    println("Num Objects to do: " + _objects.size()); 
+    //println("Num Objects to do: " + _objects.size()); 
     
     //iterations = 0;
     _root = buildBVHTreeRecursive(0, _objects.size(), new BVHSplitMidpoint(), 0);
@@ -76,9 +76,9 @@ public class BVHAccel extends Accelerator {
     //  return null;
     //}
     
-    println(getTabs(depth) + String.format("Start-End: (%d, %d)", startI, endI));
-    if (startI > endI) {
-      //println("Error: BVH Tree is Empty");
+    //println(getTabs(depth) + String.format("Start-End: (%d, %d)", startI, endI));
+    if (startI >= endI) {
+      println("Error: BVH Node is Empty!");
       return null;
     }
 
