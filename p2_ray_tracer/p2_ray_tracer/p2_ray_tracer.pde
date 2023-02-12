@@ -1,18 +1,19 @@
-// This is the starter code for the CS 6491 Ray Tracing project.
-//
-// The most important part of this code is the interpreter, which will
-// help you parse the scene description (.cli) files.
-
 /*
 * Author: Logan Bowers
-* Important Notes:
+* IMPORTANT NOTES:
+* - I split up the timer into Build Time and Render Time because I wanted to see if there was a difference.
+* -   Build Time is the time it takes from the start of parsing a scene file to the first render call.
+* -   Render Time is the time it takes from the first render call to when rendering is finished.
+* -   What I found was that build time can sometimes exceed render time for scenes with a large number of objects (such as Bun69k).
+* -   This is ESPECIALLY true for scenes with small, high poly objects (s09.cli, s10.cli), since it still has to build the tree, but a large number of rays will miss the objects entirely.
+
 * - Most of the starter/rendering code has been migrated to the Scene and SceneInterpreter classes.
 * - The actual raytracing and shading is done in the Scene class.
 * - Some files contain multiple smaller classes. This is mainly to save tab space in the Processing IDE by grouping related functionality together.
 * - Most notably:
   -   Ray.pde contains SurfaceContact and RaycastHit
   -   Float3.pde contains Point3 and Vector3
-  -   AABBox.pde contains Bounds 
+  -   BVH.pde contains the entire Bounding Volume Heirarchy implementation, including helper structures.
 */
 
 import java.util.Arrays;

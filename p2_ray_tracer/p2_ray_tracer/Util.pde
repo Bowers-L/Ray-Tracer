@@ -42,10 +42,11 @@ public <T> int hoarePartition(ArrayList<T> items, int left, int right, Predicate
   }
 }
 
-public void print_timer(int startTime)
+//Taken from the p2 assignment description. Repurposed to print an arbitrary timer.
+public void print_timer(int startTime, String header)
 {
   int new_timer = millis();
   int diff = new_timer - startTime;
   float seconds = diff / 1000.0;
-  println ("Render Time = " + seconds);
+  println (header + " = " + seconds);
 }

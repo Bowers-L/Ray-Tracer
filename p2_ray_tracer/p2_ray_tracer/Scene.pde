@@ -9,7 +9,7 @@ public class Scene {
   private float _k = 0; //The number of units between the
   private color _background = color(0, 0, 0);
 
-  private int timer;
+  private int renderTimer;
 
   public Scene() {
     reset();
@@ -56,12 +56,12 @@ public class Scene {
       }
     }
     
-    print_timer();
+    print_timer(renderTimer, "Render Time");
   }
 
   private void reset_timer()
   {
-    timer = millis();
+    renderTimer = millis();
   }
 
   //Contains the logic for shading a single pixel using classical RT with an eye hit.

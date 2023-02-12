@@ -18,7 +18,7 @@ public class SceneInterpreter {
   private Stack<ArrayList<SceneObject>> _accelBufferStack = new Stack<ArrayList<SceneObject>>();
   private Material _currMaterial = null;
   
-  private int timer;
+  private int buildTimer;
 
   public SceneInterpreter(String sceneFilesDir, String[] sceneFileNames) {
     this.sceneFilesDir = sceneFilesDir;
@@ -35,7 +35,7 @@ public class SceneInterpreter {
   
   public void interpretScene(String sceneFile) {
     reset();
-    timer = millis();
+    reset_timer();
     interpretSceneRecursive(sceneFile);  
   }
   
@@ -46,6 +46,10 @@ public class SceneInterpreter {
     _currVertexBuffer = new ArrayList<Point3>();
     _accelBufferStack = new Stack<ArrayList<SceneObject>>();
     _currMaterial = null;
+  }
+  
+  private void reset_timer() {
+    buildTimer = millis();  
   }
   
   private void addObject(SceneObject obj) {
@@ -190,6 +194,7 @@ public class SceneInterpreter {
       else if (token[0].equals("read")) {
         interpretSceneRecursive(sceneFilesDir + token[1]);
       } else if (token[0].equals("render")) {
+        print_timer(buildTimer, "Scene Build Time");
         _mainScene.render();
       } else if (token[0].equals("#")) {
         // comment (ignore)

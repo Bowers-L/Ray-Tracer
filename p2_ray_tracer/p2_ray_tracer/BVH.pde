@@ -1,3 +1,9 @@
+/*
+* Implementation Notes:
+* - I used an out of place implementation for partitioning objects into nodes in order to differentiate it from the pbrt implementation.
+* - This has the advantage of being simpler to understand and not needing to modify the object list directly, but has a space overhead compared to the in-place implementation.
+* - Build time is also slightly slower, but render time remains the same.
+*/
 public class BVH extends Accelerator {
   
   public class BVHNode {
