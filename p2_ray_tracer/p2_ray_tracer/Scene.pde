@@ -99,15 +99,11 @@ public class Scene {
   //Casts a ray into the scene and return information about the closest object hit.
   public RaycastHit raycast(Ray ray) {
     RaycastHit closestHit = null;
-    float closestDist = Float.POSITIVE_INFINITY;
     for (SceneObject currObj : _sceneObjects) {
-
-      //Need to call and get the exact object hit
       RaycastHit hit = currObj.raycast(ray);
-      if (hit != null && hit.distance < closestDist) {
-        //Record the closest ray intersection.
+      boolean shouldUpdateClosest = hit != null && (closestHit == null || hit.distance < closestHit.distance);
+      if (shouldUpdateClosest) {
         closestHit = hit;
-        closestDist = hit.distance;
       }
     }
 

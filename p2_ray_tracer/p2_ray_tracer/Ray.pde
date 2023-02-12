@@ -35,9 +35,9 @@ public class RaycastHit {
   public SurfaceContact contact;
   public float distance;
   
-  public RaycastHit(GeometricObject obj, SurfaceContact intersection, float distance) {
+  public RaycastHit(GeometricObject obj, SurfaceContact contact, float distance) {
     this.obj = obj;
-    this.contact = intersection;
+    this.contact = contact;
     this.distance = distance;
   }
 }

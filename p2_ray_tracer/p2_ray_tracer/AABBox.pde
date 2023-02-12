@@ -97,6 +97,13 @@ public class AABBox extends Shape {
 
     return t1 > t2 ? new Bounds1(t2, t1) : new Bounds1(t1, t2);
   }
+  
+  public String toString() {
+    String result = "";
+    result += "min: " + _bounds.min + " ";
+    result += "max: " + _bounds.max;
+    return result;
+  }
 }
 
 public AABBox union(AABBox box1, AABBox box2) {

@@ -142,7 +142,7 @@ public class SceneInterpreter {
       else if (token[0].equals("named_object")) {
           String objectName = token[1];
           SceneObject objectReference = _mainScene.sceneObjects().remove(_mainScene.sceneObjects().size()-1);
-          println("Added object", objectName, " with reference to ", objectReference);
+          //println("Added object", objectName, " with reference to ", objectReference);
           _namedObjects.put(objectName, objectReference);
       } else if (token[0].equals("instance")) {
         String objectName = token[1];

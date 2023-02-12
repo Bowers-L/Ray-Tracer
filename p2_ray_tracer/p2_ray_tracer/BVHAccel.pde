@@ -16,16 +16,16 @@ public class BVHAccel extends Accelerator {
 
   public abstract class BVHNode {
     //A leaf node is defined as numObjects > 0.
-    public AABBox bounds;
+    public AABBox bbox;
   }
 
   public class BVHLeafNode extends BVHNode {
     public int indexOffset;
     public int numObjects;
-    public BVHLeafNode(AABBox bounds, int offset, int nObj) {
+    public BVHLeafNode(AABBox bbox, int offset, int nObj) {
       this.indexOffset = offset;
       this.numObjects = nObj;
-      this.bounds = bounds;
+      this.bbox = bbox;
     }
   }
 
@@ -33,7 +33,8 @@ public class BVHAccel extends Accelerator {
     public int splitAxis;
     public BVHNode[] children = new BVHNode[2];
 
-    public BVHInteriorNode(int splitAxis, BVHNode c0, BVHNode c1) {
+    public BVHInteriorNode(AABBox bbox, int splitAxis, BVHNode c0, BVHNode c1) {
+      this.bbox = bbox;
       this.splitAxis = splitAxis;
       this.children[0] = c0;
       this.children[1] = c1;
@@ -94,10 +95,9 @@ public class BVHAccel extends Accelerator {
       return createLeaf(bbox, startI, endI);
     }
 
-    //Use the Midpoint Method to determine a partition
     int midI = splitStrategy.split(_buildData, startI, endI, splitDim, splitBounds);
 
-    return new BVHInteriorNode(splitDim,
+    return new BVHInteriorNode(bbox, splitDim,
       buildBVHTreeRecursive(startI, midI, splitStrategy),
       buildBVHTreeRecursive(midI, endI, splitStrategy)
       );
@@ -122,22 +122,68 @@ public class BVHAccel extends Accelerator {
     return new BVHLeafNode(bbox, offset, endI - startI);
   }
 
-  public AABBox getBoundingBox() {
-    return null;
+  @Override
+    public AABBox getBoundingBox() {
+    return _root.bbox;
   }
 
-  public RaycastHit raycast(Ray ray) {
-    return null;
-  }
-  
-  public String toString() {
+  @Override
+    public RaycastHit raycast(Ray ray) {
+    //Do binary search to find the right primitive and raycast against it.
+
+    RaycastHit closestHit = new RaycastHit(null, null, Float.MAX_VALUE);
+    raycastRecurse(ray, _root, closestHit, 0, Integer.MAX_VALUE);
     
+    return closestHit.obj == null ? null : closestHit;
+  }
+
+  private void raycastRecurse(Ray ray, BVHNode curr, RaycastHit closestHit, int currDepth, int maxDepth) {
+    if (curr == null) {
+      return;  //This is possible??
+    }
+
+    SurfaceContact contact = curr.bbox.intersection(ray);
+    if (contact != null) {
+      if (currDepth >= maxDepth) {
+        //Debugging
+        GeometricObject go = new GeometricObject(curr.bbox, new Material(0.8f, 0.8f, 0.8f));
+        updateClosestHit(new RaycastHit(go, contact, ray.origin.distanceTo(contact.point)), closestHit);
+      }
+
+      if (curr instanceof BVHLeafNode) {
+        BVHLeafNode leaf = (BVHLeafNode) curr;
+        for (int i = leaf.indexOffset; i < leaf.indexOffset + leaf.numObjects; i++) {
+          SceneObject obj = _objectsInOrder.get(i);
+          RaycastHit hit = obj.raycast(ray);
+
+          updateClosestHit(hit, closestHit);
+        }
+      } else {
+        BVHInteriorNode interior = (BVHInteriorNode) curr;
+        raycastRecurse(ray, interior.children[0], closestHit, currDepth+1, maxDepth);
+        raycastRecurse(ray, interior.children[1], closestHit, currDepth+1, maxDepth);
+      }
+    }
+  }
+
+  private void updateClosestHit(RaycastHit hit, RaycastHit closestHit) {
+    //No pointers in Java, so you have to update the obj's properties, not assign to it.
+    boolean shouldUpdateClosest = hit != null && (closestHit == null || hit.distance < closestHit.distance);
+    if (shouldUpdateClosest) {
+      closestHit.obj = hit.obj;
+      closestHit.contact = hit.contact;
+      closestHit.distance = hit.distance;
+    }
+  }
+
+  public String toString() {
+
     //Do an postorder traversal of the tree.
     String result = "Bounding Volume Heirarchy with Nodes: \n\n";
-    
+
     return updateStringPreorder(result, _root, 0);
   }
-  
+
   public String updateStringPreorder(String str, BVHNode curr, int depth) {
     String tabs = "";
     for (int i = 0; i < depth; i++) {
@@ -145,21 +191,21 @@ public class BVHAccel extends Accelerator {
     }
     if (curr instanceof BVHLeafNode) {
       BVHLeafNode leaf = (BVHLeafNode) curr;
-      str += tabs + " Leaf Node with objects: \n";
+      str += tabs + String.format(" Leaf Node with BoundingBox: %s\n\n", curr.bbox);
       for (int i = leaf.indexOffset; i < leaf.indexOffset+leaf.numObjects; i++) {
-        str += tabs + _objectsInOrder.get(i) + "\n";  
+        str += tabs + _objectsInOrder.get(i) + "\n\n";
       }
     } else {
-      str += tabs + " Internal Node: \n";
+      str += tabs + (depth == 0 ? "Root: " : " Internal Node: ") + curr.bbox + "\n";
     }
-    
+
     if (curr instanceof BVHInteriorNode) {
       BVHInteriorNode interior = (BVHInteriorNode) curr;
-      
-      str += updateStringPreorder(str, interior.children[0], depth+1);
-      str += updateStringPreorder(str, interior.children[1], depth+1); 
+
+      str = updateStringPreorder(str, interior.children[0], depth+1);
+      str = updateStringPreorder(str, interior.children[1], depth+1);
     }
-    
+
     return str;
   }
 
@@ -169,7 +215,7 @@ public class BVHAccel extends Accelerator {
   }
 
   public class BVHSplitMidpoint extends BVHSplitStrategy {
-    //Partitions buildData within left and right such that all elements at indices below the returned value are to the left of the midpoint. 
+    //Partitions buildData within left and right such that all elements at indices below the returned value are to the left of the midpoint.
     public int split(ArrayList<SceneObjectData> buildData, int left, int right, int splitDim, Bounds1 splitBounds) {
       float midpoint = lerp(splitBounds.lower, splitBounds.upper, 0.5f);
 
@@ -178,4 +224,6 @@ public class BVHAccel extends Accelerator {
         (objectData) -> (objectData.centroid.p(splitDim) < midpoint) );
     }
   }
+
+  //Splitting on count is slightly more complicated since Java doesn't come with a standard quicksort method like C++
 }

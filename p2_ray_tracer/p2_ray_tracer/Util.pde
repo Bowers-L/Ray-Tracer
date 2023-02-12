@@ -16,6 +16,7 @@ public Vector3 getOrientedNormal(Ray ray, Vector3 normal) {
 
 //Partition items in a list within the range [l, r), return the index of the first false element.
 public <T> int hoarePartition(ArrayList<T> items, int left, int right, Predicate<T> lessThanTarget) {
+  //Hoare's Algorithm: Start on both ends and work towards the middle. 
   int l = left;
   int r = right-1;
   

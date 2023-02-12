@@ -82,7 +82,7 @@ public class Triangle extends Shape {
   @Override 
   public AABBox getBoundingBox() {
     Point3 min = new Point3(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
-    Point3 max = new Point3(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
+    Point3 max = new Point3(-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE);
     
     for (int i = 0; i < 3; i++) {
       if (points[i].x < min.x) {
