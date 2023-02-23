@@ -90,12 +90,21 @@ public class SceneInterpreter {
         Light l = new Light(pos, mat);
         _mainScene.addLight(l);
         //println(_light);
-      } else if (token[0].equals("surface")) {
+      } 
+      
+      //MATERIAL
+      else if (token[0].equals("surface")) {
         float r = float(token[1]);
         float g = float(token[2]);
         float b = float(token[3]);
         _currMaterial = new Material(r, g, b);
         //println ("surface = " + r + " " + g + " " + b);
+      } else if (token[0].equals("glossy")) {
+        float dr = float(token[1]);
+        float dg = float(token[2]);
+        float db = float(token[3]);
+        
+        _currMaterial = new Material(dr, dg, db);
       }
 
       //TRIANGLE PRIMITIVE
@@ -111,7 +120,6 @@ public class SceneInterpreter {
       } else if (token[0].equals("end")) {
         Triangle t = new Triangle(_currVertexBuffer);
         t = (Triangle) t.transform(_matrixStack.top());
-        //println(ro);
         addObject(new GeometricObject(t, _currMaterial));
       }
 
@@ -131,6 +139,21 @@ public class SceneInterpreter {
         box = (AABBox) box.transform(_matrixStack.top());
 
         addObject(new GeometricObject(box, _currMaterial));
+      }
+      
+      //SPHERE PRIMITIVE
+      else if (token[0].equals("sphere")) {
+        float radius = float(token[1]);
+        float cx = float(token[2]);
+        float cy = float(token[3]);
+        float cz = float(token[4]);
+        
+        Point3 center = new Point3(cx, cy, cz);
+
+        Sphere sphere = new Sphere(radius, center);
+        sphere = (Sphere) sphere.transform(_matrixStack.top());
+
+        addObject(new GeometricObject(sphere, _currMaterial));
       }
 
       //NAMED OBJECT
