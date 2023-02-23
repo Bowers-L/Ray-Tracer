@@ -70,40 +70,31 @@ public class Scene {
 
     if (debug_unlit) {
       //Ignore lighting (useful for intersection testing)
-      return eyeHit.obj.material.getColor();
+      return eyeHit.obj.material.diffuse.getColor();
     }
 
-    float lightR = 0;
-    float lightG = 0;
-    float lightB = 0;
+    Color lightContrib = new Color(0, 0, 0);
     for (Light l : lights()) {
       Ray shadowRay = new Ray(eyeHit.contact.point, new Vector3(eyeHit.contact.point, l.position).normalized());
-
-      //Raycast ignores the hit object when casting a shadow.
-      RaycastHit shadowHit = raycast(shadowRay);  //Don't ignore the eyeHit object because the shadow ray could pass through it to get to the light.
+      RaycastHit shadowHit = raycast(shadowRay);
 
       boolean objectBlocksLight = false;
       if (shadowHit != null) {
         //Only cast shadows if the hit object is between the object and the light source.
         float distToLight = shadowRay.origin.distanceTo(l.position);
-        objectBlocksLight = shadowHit.distance > 0 && shadowHit.distance < distToLight;
+        objectBlocksLight = shadowHit.distance < distToLight;
       }
 
       if (!objectBlocksLight) {
-        float diffuseStrength = max(0, eyeHit.contact.normal.dot(shadowRay.direction));
-
-        //Additive Blending for now.
-        lightR += l.material.r * diffuseStrength;
-        lightG += l.material.g * diffuseStrength;
-        lightB += l.material.b * diffuseStrength;
+        Vector3 n = eyeHit.contact.normal;
+        Vector3 ldir = shadowRay.direction;
+        lightContrib = lightContrib.add(l.material.getContributionFromLight(n, ldir));
       }
     }
+    
+    Color out = eyeHit.obj.material.diffuse.mult(lightContrib);
 
-    float outR = eyeHit.obj.material.r * lightR;
-    float outG = eyeHit.obj.material.g * lightG;
-    float outB = eyeHit.obj.material.b * lightB;
-
-    return color(outR, outG, outB);
+    return out.getColor();
   }
 
   //Casts a ray into the scene and return information about the closest object hit.

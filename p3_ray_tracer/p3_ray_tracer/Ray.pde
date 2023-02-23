@@ -4,7 +4,7 @@ public class Ray {
 
   public Ray(Point3 origin, Vector3 direction) {
     this.origin = origin;
-    this.direction = direction;
+    this.direction = direction.normalized();
   }
 
   public Point3 evaluate(float t) {

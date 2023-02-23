@@ -51,6 +51,7 @@ public void print_timer(int startTime, String header)
   println (header + " = " + seconds);
 }
 
+//t = (-b +- sqrt(b^2 - 4ac)) / (2a)
 public float[] solveQuadratic(float a, float b, float c) {
   float disc = b*b - 4*a*c;
   if (disc < 0) {

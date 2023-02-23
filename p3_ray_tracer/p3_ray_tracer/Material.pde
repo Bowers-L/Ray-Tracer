@@ -1,20 +1,33 @@
 public class Material {
-  //Processing represents colors as packed ints, so I separated out the channels here to make the math easier.
-  public float r;
-  public float g;
-  public float b;
+  public Color diffuse;
+  public Color specular;
+  public float specPow;
+  public float kRefl;
+  public float glossRadius;
   
   public Material(float r, float g, float b) {
-    this.r = r;
-    this.g = g;
-    this.b = b;
+    this(new Color(r, g, b));
   }
   
-  public color getColor() {
-    return color(r, g, b);
+  public Material(Color diffuse) {
+    this(diffuse, new Color(0, 0, 0), 0, 0, 0);
+  }
+  
+  public Material(Color diffuse, Color specular, float specPow, float kRefl, float glossRadius) {
+    this.diffuse = diffuse;
+    this.specular = specular;
+    this.specPow = specPow;
+    this.kRefl = kRefl;
+    this.glossRadius = glossRadius;
+  }
+  
+  public Color getContributionFromLight(Vector3 n, Vector3 l) {
+      float diffuseStrength = max(0, n.dot(l));
+      Color diffuseContrib = diffuse.scale(diffuseStrength);
+      return diffuseContrib;
   }
   
   public String toString() {
-    return String.format("Material with color (%.2f, %.2f, %.2f)", r, g, b); 
+    return String.format("Material with diffuse %s", diffuse); 
   }
 }

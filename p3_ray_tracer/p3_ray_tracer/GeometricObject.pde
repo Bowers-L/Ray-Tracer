@@ -1,4 +1,3 @@
-//NOTE: The Primitive class in the PBR book is closer to the SceneObject class in this project.
 //Geometric Objects are only used to render basic shapes with a material.
 public class GeometricObject extends SceneObject {
     public Shape shape;  //Describes the geometric properties

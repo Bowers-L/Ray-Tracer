@@ -29,6 +29,7 @@ public class Sphere extends Shape {
     float b = 2 * (d.x*o.x + d.y*o.y + d.z*o.z);
     float c = o.x*o.x + o.y*o.y + o.z*o.z - radius*radius;
 
+    //Determine the correct t value using the quadratic formula.
     float[] tResults = solveQuadratic(a, b, c);
 
     if (tResults == null || tResults.length == 0) {

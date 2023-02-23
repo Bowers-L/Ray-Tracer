@@ -129,7 +129,7 @@ public class BVH extends Accelerator {
     if (contact != null) {
       if (currDepth >= maxDepth) {
         //Debugging by drawing AABB at depth.
-        GeometricObject go = new GeometricObject(curr.bbox, new Material(0.8f, 0.8f, 0.8f));
+        GeometricObject go = new GeometricObject(curr.bbox, new Material(new Color(0.8f, 0.8f, 0.8f)));
         updateClosestHit(new RaycastHit(go, contact, ray.origin.distanceTo(contact.point)), closestHit);
       }
 

@@ -104,7 +104,18 @@ public class SceneInterpreter {
         float dg = float(token[2]);
         float db = float(token[3]);
         
-        _currMaterial = new Material(dr, dg, db);
+        float sr = float(token[4]);
+        float sg = float(token[5]);
+        float sb = float(token[6]);
+        
+        float spec_pow = float(token[7]);
+        float k_refl = float(token[8]);
+        float gloss_radius = float(token[9]);
+        
+        Color diffuse = new Color(dr, dg, db);
+        Color specular = new Color(sr, sg, sb);
+        
+        _currMaterial = new Material(diffuse, specular, spec_pow, k_refl, gloss_radius);
       }
 
       //TRIANGLE PRIMITIVE
