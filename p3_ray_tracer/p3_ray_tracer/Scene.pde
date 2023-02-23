@@ -50,7 +50,7 @@ public class Scene {
 
         // set the pixel color
         if (hit != null) {
-          color c = shade(hit);
+          color c = shade(eyeRay, hit);
           set(x, y, c);  // make a tiny rectangle to fill the pixel
         }
       }
@@ -65,7 +65,7 @@ public class Scene {
   }
 
   //Contains the logic for shading a single pixel using classical RT with an eye hit.
-  private color shade(RaycastHit eyeHit) {
+  private color shade(Ray eye, RaycastHit eyeHit) {
     boolean debug_unlit = false;
 
     if (debug_unlit) {
@@ -73,7 +73,7 @@ public class Scene {
       return eyeHit.obj.material.diffuse.getColor();
     }
 
-    Color lightContrib = new Color(0, 0, 0);
+    Color out = new Color(0, 0, 0);
     for (Light l : lights()) {
       Ray shadowRay = new Ray(eyeHit.contact.point, new Vector3(eyeHit.contact.point, l.position).normalized());
       RaycastHit shadowHit = raycast(shadowRay);
@@ -86,13 +86,26 @@ public class Scene {
       }
 
       if (!objectBlocksLight) {
+        Material objMat = eyeHit.obj.material;
+        Material lightMat = l.material;
         Vector3 n = eyeHit.contact.normal;
         Vector3 ldir = shadowRay.direction;
-        lightContrib = lightContrib.add(l.material.getContributionFromLight(n, ldir));
+        Vector3 e = eye.direction.scale(-1);
+        
+        //Reference: Fundamentals of CG Section 10.2 eq. 10.9
+        
+        //DIFFUSE
+        float diffuseStrength = max(0, n.dot(ldir));
+        Color diffuseC = objMat.diffuse.mult(lightMat.diffuse.scale(diffuseStrength));  //cr*cl*(n . l)
+        out = out.add(diffuseC);
+        
+        //SPECULAR
+        Vector3 h = e.add(ldir).normalized();
+        float specularStrength = pow(h.dot(n), objMat.specPow);
+        Color specularC = objMat.specular.mult(lightMat.diffuse.scale(specularStrength));
+        out = out.add(specularC);
       }
     }
-    
-    Color out = eyeHit.obj.material.diffuse.mult(lightContrib);
 
     return out.getColor();
   }

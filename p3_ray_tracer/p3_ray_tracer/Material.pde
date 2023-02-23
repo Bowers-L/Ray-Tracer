@@ -21,12 +21,6 @@ public class Material {
     this.glossRadius = glossRadius;
   }
   
-  public Color getContributionFromLight(Vector3 n, Vector3 l) {
-      float diffuseStrength = max(0, n.dot(l));
-      Color diffuseContrib = diffuse.scale(diffuseStrength);
-      return diffuseContrib;
-  }
-  
   public String toString() {
     return String.format("Material with diffuse %s", diffuse); 
   }

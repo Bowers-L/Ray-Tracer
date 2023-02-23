@@ -48,10 +48,14 @@ void keyPressed() {
 
   if (key >= '1' && key <= '9') {
     index = key - '1';
-  } else if (key == 'a') {
-    index = 9;
   } else {
     switch (key) {
+    case '0':
+      index = 9;
+      break;
+    case 'a':
+      index = 10;
+      break;
     case '!':
       index = 9;
       break;
