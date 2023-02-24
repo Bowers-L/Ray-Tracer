@@ -7,7 +7,7 @@ public class Scene {
   private ArrayList<SceneObject> _sceneObjects = new ArrayList<SceneObject>();
   private float _fovDeg = 0;
   private float _k = 0;
-  private color _background = color(0, 0, 0);
+  private Color _background = new Color(0f, 0f, 0f);
   private int _raysPerPixel = 1;
 
   private int renderTimer;
@@ -17,7 +17,7 @@ public class Scene {
   }
 
   public void reset() {
-    _background = color(0, 0, 0);
+    _background = new Color(0f, 0f, 0f);
     setFOV(0);
     _lights.clear();
     _sceneObjects.clear();
@@ -26,7 +26,7 @@ public class Scene {
   // Go through all pixels and draw the scene using Ray Tracing.
   public void render() {
     reset_timer();
-    background(_background);
+    background(_background.getColor());
 
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
@@ -41,19 +41,36 @@ public class Scene {
         // create and cast an eye ray
         Color shadedPixel = null;
         if (_raysPerPixel > 1) {
-          //shadedPixel = getPixelColorSampledRays(x, y);
+          shadedPixel = getPixelColorAntiAliased(x, y);
         } else {
           shadedPixel = getPixelColorSingleRaycast(x, y);  
         }
         
         if (shadedPixel != null) {
           set(x, y, shadedPixel.getColor());
-        }
-        
+        }    
       }
     }
     
     print_timer(renderTimer, "Render Time");
+  }
+  
+  //Casts a ray into the scene and return information about the closest object hit.
+  public RaycastHit raycast(Ray ray) {
+    RaycastHit closestHit = null;
+    for (SceneObject currObj : _sceneObjects) {
+      RaycastHit hit = currObj.raycast(ray);
+      boolean shouldUpdateClosest = hit != null && (closestHit == null || hit.distance < closestHit.distance);
+      if (shouldUpdateClosest) {
+        closestHit = hit;
+      }
+    }
+
+    if (closestHit == null) {
+      return null;
+    } else {
+      return closestHit;
+    }
   }
   
   private Color getPixelColorSingleRaycast(float x, float y) {
@@ -63,14 +80,28 @@ public class Scene {
       for (SceneObject s : _sceneObjects) {
         s.perPixelRay();
       }
-
       RaycastHit hit = raycast(eyeRay);
       
-      if (hit == null) {
-        return null;
-      }
+      return hit == null ? null : shadeEyeHit(eyeRay, hit);
+  }
+  
+  private Color getPixelColorAntiAliased(float x, float y) {
+      Color avgColor = _background;
+      for (int i = 0; i < _raysPerPixel; i++) {
+        float rx = random(1f);
+        float ry = random(1f);
+        
+        Color c = getPixelColorSingleRaycast(x+rx, y+ry);
+        
+        if (c == null) {
+          avgColor = avgColor.add(_background);  
+        } else {
+          avgColor = avgColor.add(c);  
+        }
+      } 
       
-      return shadeEyeHit(eyeRay, hit);
+      //"Box Filter"
+      return avgColor==null ? null : avgColor.scale(1./_raysPerPixel);
   }
 
   //Contains the logic for shading a single pixel given an eye hit.
@@ -118,24 +149,6 @@ public class Scene {
 
     return out;
   }
-
-  //Casts a ray into the scene and return information about the closest object hit.
-  public RaycastHit raycast(Ray ray) {
-    RaycastHit closestHit = null;
-    for (SceneObject currObj : _sceneObjects) {
-      RaycastHit hit = currObj.raycast(ray);
-      boolean shouldUpdateClosest = hit != null && (closestHit == null || hit.distance < closestHit.distance);
-      if (shouldUpdateClosest) {
-        closestHit = hit;
-      }
-    }
-
-    if (closestHit == null) {
-      return null;
-    } else {
-      return closestHit;
-    }
-  }
   
   private void reset_timer()
   {
@@ -155,7 +168,7 @@ public class Scene {
     _k = tan(DEG2RAD * _fovDeg / 2);
   }
 
-  public void setBackground(color bg) {
+  public void setBackground(Color bg) {
     _background = bg;
   }
   

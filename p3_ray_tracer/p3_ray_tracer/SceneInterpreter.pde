@@ -72,7 +72,7 @@ public class SceneInterpreter {
         float r = float(token[1]);  // this is how to get a float value from a line in the scene description file
         float g = float(token[2]);
         float b = float(token[3]);
-        _mainScene.setBackground(color(r, g, b));
+        _mainScene.setBackground(new Color(r, g, b));
         //println ("background = " + r + " " + g + " " + b);
       }
 
