@@ -16,6 +16,19 @@ public class Ray {
   }
 }
 
+public class BoundedRay extends Ray {
+  private float maxDist;
+  
+  public BoundedRay(Point3 origin, Vector3 direction, float maxDist) {
+    super(origin, direction);
+    this.maxDist = maxDist;
+  }
+  
+  public float getMaxDist() {
+    return maxDist;
+  }
+}
+
 public class SurfaceContact {
   //Simplified version that just gets the point and normal at the surface.
   public Point3 point;

@@ -65,15 +65,11 @@ public class SceneInterpreter {
       //SCENE SETUP (fov, background)
       if (token[0].equals("fov")) {
         _mainScene.setFOV(float(token[1]));
-
-        //println("fov: ", _fov);
-        //println("k: ", _k);
       } else if (token[0].equals("background")) {
         float r = float(token[1]);  // this is how to get a float value from a line in the scene description file
         float g = float(token[2]);
         float b = float(token[3]);
         _mainScene.setBackground(new Color(r, g, b));
-        //println ("background = " + r + " " + g + " " + b);
       }
 
       //LIGHT
@@ -86,11 +82,29 @@ public class SceneInterpreter {
         float b = float(token[6]);
 
         Point3 pos = new Point3(x, y, z);
-        Material mat = new Material(r, g, b);
-        Light l = new Light(pos, mat);
+        Color col = new Color(r, g, b);
+        Light l = new PointLight(pos, col);
         _mainScene.addLight(l);
         //println(_light);
-      } 
+      } else if (token[0].equals("disk_light")) {
+        float x = float(token[1]);
+        float y = float(token[2]);
+        float z = float(token[3]);
+        float radius = float(token[4]);
+        float dx = float(token[5]);
+        float dy = float(token[6]);
+        float dz = float(token[7]);
+        float r = float(token[8]);
+        float g = float(token[9]);
+        float b = float(token[10]);
+        
+        Point3 pos = new Point3(x, y, z);
+        Vector3 dir = new Vector3(dx, dy, dz);
+        Color col = new Color(r, g, b);
+        
+        Light l = new DiskLight(pos, radius, dir, col);
+        _mainScene.addLight(l);
+      }
       
       //MATERIAL
       else if (token[0].equals("surface")) {

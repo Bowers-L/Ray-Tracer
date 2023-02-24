@@ -60,7 +60,13 @@ public class Scene {
     RaycastHit closestHit = null;
     for (SceneObject currObj : _sceneObjects) {
       RaycastHit hit = currObj.raycast(ray);
+      
+      //Check that there's a hit, the hit is closer than the previous closest hit, and the hit is in bounds of the ray.
       boolean shouldUpdateClosest = hit != null && (closestHit == null || hit.distance < closestHit.distance);
+      //if (shouldUpdateClosest && ray instanceof BoundedRay) {
+      //  shouldUpdateClosest = hit.distance < ((BoundedRay) ray).getMaxDist();
+      //}
+      
       if (shouldUpdateClosest) {
         closestHit = hit;
       }
@@ -115,39 +121,34 @@ public class Scene {
 
     Color out = new Color(0, 0, 0);
     for (Light l : lights()) {
-      Ray shadowRay = new Ray(eyeHit.contact.point, new Vector3(eyeHit.contact.point, l.position).normalized());
+      BoundedRay shadowRay = l.getShadowRay(eyeHit.contact.point);
       RaycastHit shadowHit = raycast(shadowRay);
 
-      boolean objectBlocksLight = false;
-      if (shadowHit != null) {
-        //Only cast shadows if the hit object is between the object and the light source.
-        float distToLight = shadowRay.origin.distanceTo(l.position);
-        objectBlocksLight = shadowHit.distance < distToLight;
-      }
-
-      if (!objectBlocksLight) {
-        Material objMat = eyeHit.obj.material;
-        Material lightMat = l.material;
-        Vector3 n = eyeHit.contact.normal;
-        Vector3 ldir = shadowRay.direction;
-        Vector3 e = eye.direction.scale(-1);
-        
-        //Reference: Fundamentals of CG Section 10.2 eq. 10.9
-        
-        //DIFFUSE (cr*cl*(n dot l))
-        float diffuseStrength = max(0, n.dot(ldir));
-        Color diffuseC = objMat.diffuse.mult(lightMat.diffuse.scale(diffuseStrength));  //
-        out = out.add(diffuseC);
-        
-        //SPECULAR (cp*cl*(h dot n)^pow)
-        Vector3 h = e.add(ldir).normalized();
-        float specularStrength = pow(h.dot(n), objMat.specPow);
-        Color specularC = objMat.specular.mult(lightMat.diffuse.scale(specularStrength));
-        out = out.add(specularC);
+      if (shadowHit == null) {
+        Color contrib = getContributionFromLight(eyeHit.obj.material, l.col, eyeHit.contact.normal, shadowRay.direction, eye.direction.scale(-1));
+        out = out.add(contrib);
       }
     }
 
     return out;
+  }
+  
+  private Color getContributionFromLight(Material objMat, Color lightCol, Vector3 n, Vector3 l, Vector3 e) {
+        //Reference: Fundamentals of CG Section 10.2 eq. 10.9
+        //DIFFUSE (cr*cl*(n dot l))
+        Color contrib = new Color(0f, 0f, 0f);
+        
+        float diffuseStrength = max(0, n.dot(l));
+        Color diffuseC = objMat.diffuse.mult(lightCol.scale(diffuseStrength));  //
+        contrib = contrib.add(diffuseC);
+        
+        //SPECULAR (cp*cl*(h dot n)^pow)
+        Vector3 h = e.add(l).normalized();
+        float specularStrength = pow(h.dot(n), objMat.specPow);
+        Color specularC = objMat.specular.mult(lightCol.scale(specularStrength));
+        contrib = contrib.add(specularC);
+        
+        return contrib;
   }
   
   private void reset_timer()
