@@ -6,8 +6,9 @@ public class Scene {
   private ArrayList<Light> _lights = new ArrayList<Light>();
   private ArrayList<SceneObject> _sceneObjects = new ArrayList<SceneObject>();
   private float _fovDeg = 0;
-  private float _k = 0; //The number of units between the
+  private float _k = 0;
   private color _background = color(0, 0, 0);
+  private int _raysPerPixel = 1;
 
   private int renderTimer;
 
@@ -38,39 +39,47 @@ public class Scene {
         //debug_flag = true;
 
         // create and cast an eye ray
-        Point3 pixelInWorld = screenToWorldPos(x, y);
-        Ray eyeRay = new Ray(eye, new Vector3(eye, pixelInWorld));
-
-        if (debug_flag) {
-          println("pixel3D: ", pixelInWorld.toString());
-          println("eyeRay: ", eyeRay.toString());
+        Color shadedPixel = null;
+        if (_raysPerPixel > 1) {
+          //shadedPixel = getPixelColorSampledRays(x, y);
+        } else {
+          shadedPixel = getPixelColorSingleRaycast(x, y);  
         }
-
-        RaycastHit hit = raycast(eyeRay);
-
-        // set the pixel color
-        if (hit != null) {
-          color c = shade(eyeRay, hit);
-          set(x, y, c);  // make a tiny rectangle to fill the pixel
+        
+        if (shadedPixel != null) {
+          set(x, y, shadedPixel.getColor());
         }
+        
       }
     }
     
     print_timer(renderTimer, "Render Time");
   }
+  
+  private Color getPixelColorSingleRaycast(float x, float y) {
+      Point3 pixelInWorld = screenToWorldPos(x, y);
+      Ray eyeRay = new Ray(eye, new Vector3(eye, pixelInWorld));     
+      
+      for (SceneObject s : _sceneObjects) {
+        s.perPixelRay();
+      }
 
-  private void reset_timer()
-  {
-    renderTimer = millis();
+      RaycastHit hit = raycast(eyeRay);
+      
+      if (hit == null) {
+        return null;
+      }
+      
+      return shadeEyeHit(eyeRay, hit);
   }
 
-  //Contains the logic for shading a single pixel using classical RT with an eye hit.
-  private color shade(Ray eye, RaycastHit eyeHit) {
+  //Contains the logic for shading a single pixel given an eye hit.
+  private Color shadeEyeHit(Ray eye, RaycastHit eyeHit) {
     boolean debug_unlit = false;
 
     if (debug_unlit) {
       //Ignore lighting (useful for intersection testing)
-      return eyeHit.obj.material.diffuse.getColor();
+      return eyeHit.obj.material.diffuse;
     }
 
     Color out = new Color(0, 0, 0);
@@ -94,12 +103,12 @@ public class Scene {
         
         //Reference: Fundamentals of CG Section 10.2 eq. 10.9
         
-        //DIFFUSE
+        //DIFFUSE (cr*cl*(n dot l))
         float diffuseStrength = max(0, n.dot(ldir));
-        Color diffuseC = objMat.diffuse.mult(lightMat.diffuse.scale(diffuseStrength));  //cr*cl*(n . l)
+        Color diffuseC = objMat.diffuse.mult(lightMat.diffuse.scale(diffuseStrength));  //
         out = out.add(diffuseC);
         
-        //SPECULAR
+        //SPECULAR (cp*cl*(h dot n)^pow)
         Vector3 h = e.add(ldir).normalized();
         float specularStrength = pow(h.dot(n), objMat.specPow);
         Color specularC = objMat.specular.mult(lightMat.diffuse.scale(specularStrength));
@@ -107,7 +116,7 @@ public class Scene {
       }
     }
 
-    return out.getColor();
+    return out;
   }
 
   //Casts a ray into the scene and return information about the closest object hit.
@@ -127,6 +136,11 @@ public class Scene {
       return closestHit;
     }
   }
+  
+  private void reset_timer()
+  {
+    renderTimer = millis();
+  }
 
   public void addObject(SceneObject ro) {
     _sceneObjects.add(ro);
@@ -144,6 +158,10 @@ public class Scene {
   public void setBackground(color bg) {
     _background = bg;
   }
+  
+  public void setRaysPerPixel(int rpp) {
+    _raysPerPixel = rpp;  
+  }
 
   public ArrayList<Light> lights() {
     return _lights;
@@ -153,9 +171,9 @@ public class Scene {
     return _sceneObjects;
   }
 
-  private Point3 screenToWorldPos(int px, int py) {
-    float x = ((float) px - width / 2) * _k * 2 / width;
-    float y = ((float) py - height / 2) * _k * 2 / height;
+  private Point3 screenToWorldPos(float px, float py) {
+    float x = (px - width / 2) * _k * 2 / width;
+    float y = (py - height / 2) * _k * 2 / height;
     y= -y;  //Flip so that +y points up.
     return new Point3(x, y, -1);
   }

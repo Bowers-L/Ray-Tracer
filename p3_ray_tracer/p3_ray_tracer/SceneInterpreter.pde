@@ -170,13 +170,25 @@ public class SceneInterpreter {
       //NAMED OBJECT
       else if (token[0].equals("named_object")) {
         String objectName = token[1];
-        SceneObject objectReference = _mainScene.sceneObjects().remove(_mainScene.sceneObjects().size()-1);
+        SceneObject objectReference = popLastCreatedObj();
         //println("Added object", objectName, " with reference to ", objectReference);
         _namedObjects.put(objectName, objectReference);
       } else if (token[0].equals("instance")) {
         String objectName = token[1];
         ObjectInstance instance = new ObjectInstance(_namedObjects.get(objectName), _matrixStack.top());
         addObject(instance);
+      }
+      
+      //MOVING OBJECT
+      else if (token[0].equals("moving_object")) {
+        float dx = float(token[1]);
+        float dy = float(token[2]);
+        float dz = float(token[3]);
+        
+        SceneObject objReference = popLastCreatedObj();
+        Vector3 dPos = new Vector3(dx, dy, dz);
+        
+        addObject(new MovingObject(objReference, dPos));
       }
 
       //MATRIX STACK
@@ -211,6 +223,11 @@ public class SceneInterpreter {
         //println("Added " + accelObj);
         addObject(accelObj);
       }
+      
+      //RAYS PER PIXEL
+      else if (token[0].equals("rays_per_pixel")) {
+        _mainScene.setRaysPerPixel(int(token[1]));  
+      }
 
       //SCENE COMMANDS
       else if (token[0].equals("read")) {
@@ -236,5 +253,9 @@ public class SceneInterpreter {
     } else {
       _accelBufferStack.peek().add(obj);
     }
+  }
+  
+  private SceneObject popLastCreatedObj() {
+    return _mainScene.sceneObjects().remove(_mainScene.sceneObjects().size()-1);  
   }
 }
