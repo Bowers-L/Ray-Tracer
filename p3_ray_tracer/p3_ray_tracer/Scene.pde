@@ -122,9 +122,13 @@ public class Scene {
     Color out = new Color(0, 0, 0);
     for (Light l : lights()) {
       BoundedRay shadowRay = l.getShadowRay(eyeHit.contact.point);
-      RaycastHit shadowHit = raycast(shadowRay);
+      RaycastHit shadowHit = null;
+      if (shadowRay != null) {
+        shadowHit = raycast(shadowRay);
+      }
 
-      if (shadowHit == null) {
+      boolean castShadow = shadowHit != null || shadowRay == null;
+      if (!castShadow) {
         Color contrib = getContributionFromLight(eyeHit.obj.material, l.col, eyeHit.contact.normal, shadowRay.direction, eye.direction.scale(-1));
         out = out.add(contrib);
       }
