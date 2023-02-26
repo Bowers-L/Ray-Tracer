@@ -6,6 +6,11 @@ public class Ray {
     this.origin = origin;
     this.direction = direction.normalized();
   }
+  
+  public Ray(Point3 origin, Point3 other) {
+    this.origin = origin;
+    this.direction = (new Vector3(origin, other)).normalized();
+  }
 
   public Point3 evaluate(float t) {
     return origin.add(direction.scale(t));

@@ -1,7 +1,7 @@
 public class Disk {
-  private Point3 center;
-  private float radius;
-  private Vector3 dir;
+  public Point3 center;
+  public float radius;
+  public Vector3 dir;
   
   public Disk(Point3 center, float radius, Vector3 dir) {
     this.center = center;
@@ -34,4 +34,30 @@ public class Disk {
     
     return new Vector3[] {v1.normalized(), v2.normalized()};
   } 
+}
+
+public class Lens {
+  private Disk aperture;
+  private Plane focalPlane;
+  
+  public Lens(Disk disk, float focalDist) {
+    this.aperture = disk;
+    this.focalPlane = new Plane(disk.dir, -focalDist);
+  }
+  
+  public Lens(Point3 center, float radius, Vector3 dir, float focalDist) {
+    this(new Disk(center, radius, dir), focalDist);
+  }
+  
+  public Ray getNewRandomRay(Ray origRay) {
+    //Get the focal point from the original ray on the focal plane, then create a new random ray going through this point using the aperture disk.
+      Point3 f = getFocalPoint(origRay);
+      Point3 o = aperture.randomPointOn();   
+      Ray newRay = new Ray(o, f);
+      return newRay;
+  }
+  
+  public Point3 getFocalPoint(Ray eyeRay) {
+    return focalPlane.intersection(eyeRay).point;
+  }
 }

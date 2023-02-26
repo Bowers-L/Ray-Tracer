@@ -8,7 +8,9 @@ public class Scene {
   private float _fovDeg = 0;
   private float _k = 0;
   private Color _background = new Color(0f, 0f, 0f);
+  
   private int _raysPerPixel = 1;
+  private Lens _lens = null;
 
   private int renderTimer;
 
@@ -81,11 +83,16 @@ public class Scene {
   
   private Color getPixelColorSingleRaycast(float x, float y) {
       Point3 pixelInWorld = screenToWorldPos(x, y);
-      Ray eyeRay = new Ray(eye, new Vector3(eye, pixelInWorld));     
+      Ray eyeRay = new Ray(eye, new Vector3(eye, pixelInWorld));
       
       for (SceneObject s : _sceneObjects) {
         s.perPixelRay();
       }
+      
+      if (_lens != null) {
+        eyeRay = _lens.getNewRandomRay(eyeRay);
+      }
+      
       RaycastHit hit = raycast(eyeRay);
       
       return hit == null ? null : shadeEyeHit(eyeRay, hit);
@@ -166,6 +173,11 @@ public class Scene {
 
   public void addLight(Light l) {
     _lights.add(l);
+  }
+  
+  public void addLens(float radius, float focalDist) {
+    Vector3 dir = new Vector3(0, 0, -1);
+    _lens = new Lens(eye, radius, dir, focalDist);
   }
 
   public void setFOV(float fov) {

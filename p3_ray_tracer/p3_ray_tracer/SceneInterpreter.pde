@@ -242,6 +242,14 @@ public class SceneInterpreter {
       else if (token[0].equals("rays_per_pixel")) {
         _mainScene.setRaysPerPixel(int(token[1]));  
       }
+      
+      //DEPTH OF FIELD
+      else if (token[0].equals("lens")) {
+        float radius = float(token[1]);
+        float dist = float(token[2]);
+        
+        _mainScene.addLens(radius, dist);
+      }
 
       //SCENE COMMANDS
       else if (token[0].equals("read")) {
