@@ -1,11 +1,21 @@
 public abstract class Light {
+  public class ShadowRayInfo {
+    Ray ray;
+    float distToLight;
+    
+    public ShadowRayInfo(Ray ray, float distToLight) {
+      this.ray = ray;
+      this.distToLight = distToLight;
+    }
+  }
+  
   public Color col;
   
   public Light(Color col) {
     this.col = col;
   }
   
-  public abstract BoundedRay getShadowRay(Point3 origin);
+  public abstract ShadowRayInfo getShadowRay(Point3 origin);
 }
 
 public class PointLight extends Light {
@@ -17,9 +27,9 @@ public class PointLight extends Light {
   }
   
   @Override
-  public BoundedRay getShadowRay(Point3 origin) {
+  public ShadowRayInfo getShadowRay(Point3 origin) {
     Vector3 oToLight = new Vector3(origin, pos);
-    return new BoundedRay(origin, oToLight.normalized(), oToLight.magnitude());
+    return new ShadowRayInfo(new Ray(origin, oToLight.normalized()), oToLight.magnitude());
   }
   
   public String toString() {
@@ -40,11 +50,11 @@ public class DiskLight extends Light {
   }
   
   @Override
-  public BoundedRay getShadowRay(Point3 origin) {
+  public ShadowRayInfo getShadowRay(Point3 origin) {
     //TODO: Get basis vectors, two randoms between -0.5 and 0.5, get random point on square perp. to dir, reject if not on disk or the ray is facing in the opposite direction.
 
     Point3 p = disk.randomPointOn();
     Vector3 oToLight = new Vector3(origin, p);
-    return new BoundedRay(origin, oToLight.normalized(), oToLight.magnitude());
+    return new ShadowRayInfo(new Ray(origin, oToLight.normalized()), oToLight.magnitude());
   }
 }

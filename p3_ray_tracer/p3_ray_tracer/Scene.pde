@@ -58,18 +58,14 @@ public class Scene {
   }
   
   //Casts a ray into the scene and return information about the closest object hit.
-  public RaycastHit raycast(Ray ray) {
+  public RaycastHit raycast(Ray ray, float maxDist) {
     RaycastHit closestHit = null;
     for (SceneObject currObj : _sceneObjects) {
       RaycastHit hit = currObj.raycast(ray);
       
       //Check that there's a hit, the hit is closer than the previous closest hit, and the hit is in bounds of the ray.
       boolean shouldUpdateClosest = hit != null && (closestHit == null || hit.distance < closestHit.distance);
-      if (shouldUpdateClosest && ray instanceof BoundedRay) {
-        shouldUpdateClosest = hit.distance < ((BoundedRay) ray).getMaxDist();
-      }
-      
-      if (shouldUpdateClosest) {
+      if (shouldUpdateClosest && hit.distance <= maxDist) {
         closestHit = hit;
       }
     }
@@ -79,6 +75,10 @@ public class Scene {
     } else {
       return closestHit;
     }
+  }
+  
+  public RaycastHit raycast(Ray ray) {
+    return raycast(ray, Float.MAX_VALUE);  
   }
   
   private Color getPixelColorSingleRaycast(float x, float y) {
@@ -128,17 +128,19 @@ public class Scene {
 
     Color out = new Color(0, 0, 0);
     for (Light l : lights()) {
-      BoundedRay shadowRay = l.getShadowRay(eyeHit.contact.point);
-      RaycastHit shadowHit = null;
-      if (shadowRay != null) {
-        shadowHit = raycast(shadowRay);
+      Light.ShadowRayInfo shadowRay = l.getShadowRay(eyeHit.contact.point);
+      
+      if (shadowRay == null) {
+        continue;
       }
-
-      boolean castShadow = shadowHit != null || shadowRay == null;
-      if (!castShadow) {
-        Color contrib = getContributionFromLight(eyeHit.obj.material, l.col, eyeHit.contact.normal, shadowRay.direction, eye.direction.scale(-1));
-        out = out.add(contrib);
+      
+      RaycastHit shadowHit = raycast(shadowRay.ray, shadowRay.distToLight);
+      if (shadowHit != null) {
+        continue;
       }
+      
+      Color contrib = getContributionFromLight(eyeHit.obj.material, l.col, eyeHit.contact.normal, shadowRay.ray.direction, eye.direction.scale(-1));
+      out = out.add(contrib);
     }
 
     return out;
@@ -146,16 +148,17 @@ public class Scene {
   
   private Color getContributionFromLight(Material objMat, Color lightCol, Vector3 n, Vector3 l, Vector3 e) {
         //Reference: Fundamentals of CG Section 10.2 eq. 10.9
-        //DIFFUSE (cr*cl*(n dot l))
+
         Color contrib = new Color(0f, 0f, 0f);
         
+        //DIFFUSE (cr*cl*(n dot l))
         float diffuseStrength = max(0, n.dot(l));
-        Color diffuseC = objMat.diffuse.mult(lightCol.scale(diffuseStrength));  //
+        Color diffuseC = objMat.diffuse.mult(lightCol.scale(diffuseStrength));
         contrib = contrib.add(diffuseC);
         
         //SPECULAR (cp*cl*(h dot n)^pow)
         Vector3 h = e.add(l).normalized();
-        float specularStrength = pow(h.dot(n), objMat.specPow);
+        float specularStrength = pow(max(0, h.dot(n)), objMat.specPow);
         Color specularC = objMat.specular.mult(lightCol.scale(specularStrength));
         contrib = contrib.add(specularC);
         
