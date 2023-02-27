@@ -14,6 +14,16 @@ public Vector3 getOrientedNormal(Ray ray, Vector3 normal) {
   return normal.normalized();
 }
 
+public Vector3 getRandomDir() {
+  float theta = random(2*PI);
+  float phi = random(-PI/2, PI/2);
+  
+  float x = cos(theta)*cos(phi);
+  float y = sin(theta)*cos(phi);
+  float z = sin(phi);
+  return new Vector3(x, y, z);
+}
+
 //Partition items in a list within the range [l, r), return the index of the first false element.
 public <T> int hoarePartition(ArrayList<T> items, int left, int right, Predicate<T> lessThanTarget) {
   //Hoare's Algorithm: Start on both ends and work towards the middle.

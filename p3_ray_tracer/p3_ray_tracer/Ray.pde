@@ -8,8 +8,7 @@ public class Ray {
   }
   
   public Ray(Point3 origin, Point3 other) {
-    this.origin = origin;
-    this.direction = (new Vector3(origin, other)).normalized();
+    this(origin, new Vector3(origin, other));
   }
 
   public Point3 evaluate(float t) {

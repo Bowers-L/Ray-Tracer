@@ -2,6 +2,7 @@ import java.util.HashSet;
 
 public class Scene {
   final Point3 eye = new Point3(0, 0, 0);
+  final int MaxReflectionBounces = 7;
 
   private ArrayList<Light> _lights = new ArrayList<Light>();
   private ArrayList<SceneObject> _sceneObjects = new ArrayList<SceneObject>();
@@ -37,10 +38,10 @@ public class Scene {
         // Have your routines (like ray/triangle intersection)
         // print information when this flag is set.
         debug_flag = false;
-        if (x == 150 && y == 200) {
-          debug_flag = true;
-          println("Debugging Pixel (", x, ", ", y, ")");
-        }
+        //if (x == 150 && y == 200) {
+        //  debug_flag = true;
+        //  println("Debugging Pixel (", x, ", ", y, ")");
+        //}
 
         // create and cast an eye ray
         Color shadedPixel = null;
@@ -118,6 +119,10 @@ public class Scene {
   }
   
   private Color getColorFromRaycastRecursive(Ray ray, int depth) {
+    if (depth > MaxReflectionBounces) {
+      return new Color(0, 0, 0);  //No contribution
+    }
+    
     RaycastHit hit = raycast(ray);
     
     if (hit == null) {
@@ -132,12 +137,21 @@ public class Scene {
       Point3 p = hit.contact.point;
       Vector3 n = hit.contact.normal;
       Vector3 v = ray.direction.scale(-1);
-      //Get contribution from second raycast
+      
       //r = 2n(n dot v) - v
-      Vector3 r = (n.scale(2*n.dot(v)).add(v.scale(-1))).normalized();
-      Ray reflectedRay = new Ray(p, r);
+      Vector3 r = (n.scale(2*n.dot(v)).add(v.scale(-1)));
+      
+      //Factor in "glossiness"
+      if (objMat.glossRadius > 0f) {
+        Vector3 randomDir = getRandomDir();
+        r = r.add(randomDir.scale(objMat.glossRadius));
+      }
+      
+      //Get contribution from raycast in the reflected direction.
+      Ray reflectedRay = new Ray(p, r);   
       Color reflectContrib = getColorFromRaycastRecursive(reflectedRay, depth+1);
-      reflectContrib.scale(objMat.kRefl);
+      reflectContrib = reflectContrib.scale(objMat.kRefl);
+      
       out = out.add(reflectContrib);
     }
     

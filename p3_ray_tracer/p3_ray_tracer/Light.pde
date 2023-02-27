@@ -56,11 +56,6 @@ public class DiskLight extends Light {
     Point3 p = disk.randomPointOn();
     Vector3 oToLight = new Vector3(origin, p);
     
-    if (debug_flag) {
-      println("Printing info for shadow ray:");
-      println("P: ", p);
-      println("origin to light: ", oToLight);
-    }
     return new ShadowRayInfo(new Ray(origin, oToLight.normalized()), oToLight.magnitude());
   }
 }
