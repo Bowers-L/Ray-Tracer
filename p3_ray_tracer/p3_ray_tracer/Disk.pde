@@ -28,7 +28,17 @@ public class Disk {
     //Create two vectors that are perpendicular to dir and perpendicular to each other.
     
     Vector3 v1 = new Vector3(1, 1, 1);  //This vector is arbitrary.
-    v1.z = (-dir.x*v1.x - dir.y*v1.y) / dir.z;
+    
+    //Attempt to change one of the coordinates so that dir dot v1 = 0 (v1 is perpendicular to dir).
+    if (dir.z != 0) {
+      v1.z = (-dir.x*v1.x - dir.y*v1.y) / dir.z;
+    } else if (dir.y != 0) {
+      v1.y = (-dir.x*v1.x - dir.z*v1.z) / dir.y;
+    } else if (dir.x != 0) {
+      v1.x = (-dir.y*v1.y - dir.z*v1.z) / dir.x;
+    } else {
+      println("Error: Cannot have a disk with dir 0");  
+    }
     
     Vector3 v2 = dir.cross(v1);
     
