@@ -65,9 +65,9 @@ public class Scene {
       
       //Check that there's a hit, the hit is closer than the previous closest hit, and the hit is in bounds of the ray.
       boolean shouldUpdateClosest = hit != null && (closestHit == null || hit.distance < closestHit.distance);
-      //if (shouldUpdateClosest && ray instanceof BoundedRay) {
-      //  shouldUpdateClosest = hit.distance < ((BoundedRay) ray).getMaxDist();
-      //}
+      if (shouldUpdateClosest && ray instanceof BoundedRay) {
+        shouldUpdateClosest = hit.distance < ((BoundedRay) ray).getMaxDist();
+      }
       
       if (shouldUpdateClosest) {
         closestHit = hit;
