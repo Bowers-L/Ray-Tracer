@@ -222,6 +222,15 @@ public class SceneInterpreter {
         float ry = float(token[3]);
         float rz = float(token[4]);
         _matrixStack.rotate(angle, rx, ry, rz);
+      } else if (token[0].equals("rotatex")) {
+        float angle = float(token[1]);
+        _matrixStack.rotate(angle, 1, 0, 0);
+      } else if (token[0].equals("rotatey")) {
+        float angle = float(token[1]);
+        _matrixStack.rotate(angle, 0, 1, 0);
+      } else if (token[0].equals("rotatez")) {
+        float angle = float(token[1]);
+        _matrixStack.rotate(angle, 0, 0, 1);
       } else if (token[0].equals("push")) {
         _matrixStack.push();
       } else if (token[0].equals("pop")) {
