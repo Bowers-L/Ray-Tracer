@@ -94,10 +94,8 @@ public class Scene {
     if (_lens != null) {
       eyeRay = _lens.getNewRandomRay(eyeRay);
     }
-
-    RaycastHit hit = raycast(eyeRay);
-
-    return hit == null ? null : shadeEyeHit(eyeRay, hit);
+    
+    return getColorFromRaycastRecursive(eyeRay, 1);
   }
 
   private Color getPixelColorAntiAliased(float x, float y) {
@@ -116,7 +114,34 @@ public class Scene {
     }
 
     //"Box Filter"
-    return avgColor==null ? null : avgColor.scale(1./_raysPerPixel);
+    return avgColor.scale(1./_raysPerPixel);
+  }
+  
+  private Color getColorFromRaycastRecursive(Ray ray, int depth) {
+    RaycastHit hit = raycast(ray);
+    
+    if (hit == null) {
+      return _background;
+    }
+    
+    Color out = shadeEyeHit(ray, hit);
+    
+    //Take care of reflective properties.
+    Material objMat = hit.obj.material;
+    if (objMat.kRefl > 0f) {
+      Point3 p = hit.contact.point;
+      Vector3 n = hit.contact.normal;
+      Vector3 v = ray.direction.scale(-1);
+      //Get contribution from second raycast
+      //r = 2n(n dot v) - v
+      Vector3 r = (n.scale(2*n.dot(v)).add(v.scale(-1))).normalized();
+      Ray reflectedRay = new Ray(p, r);
+      Color reflectContrib = getColorFromRaycastRecursive(reflectedRay, depth+1);
+      reflectContrib.scale(objMat.kRefl);
+      out = out.add(reflectContrib);
+    }
+    
+    return out;
   }
 
   //Contains the logic for shading a single pixel given an eye hit.
@@ -127,17 +152,12 @@ public class Scene {
       //Ignore lighting (useful for intersection testing)
       return eyeHit.obj.material.diffuse;
     }
-    
-    Material objMat = eyeHit.obj.material;
-    Point3 p = eyeHit.contact.point;
-    Vector3 n = eyeHit.contact.normal;
-    Vector3 e = eye.direction.scale(-1);
 
     Color out = new Color(0, 0, 0);
     
     //Add contributions from Lights.
     for (Light l : lights()) {
-      Light.ShadowRayInfo shadowRay = l.getShadowRay(p);
+      Light.ShadowRayInfo shadowRay = l.getShadowRay(eyeHit.contact.point);
 
       if (shadowRay == null) {
         continue;
@@ -149,21 +169,11 @@ public class Scene {
       }
 
       Vector3 lightDir = shadowRay.ray.direction;
-      Color lightContrib = getContributionFromLight(objMat, l.col, n, lightDir, e);
+      Vector3 n = eyeHit.contact.normal;
+      Vector3 e = eye.direction.scale(-1);
+      Color lightContrib = getContributionFromLight(eyeHit.obj.material, l.col, n, lightDir, e);
       out = out.add(lightContrib);
     }
-    
-    if (objMat.kRefl > 0f) {
-      //Get contribution from second raycast
-      //r = 2n(n dot v) - v (v = e)
-      Vector3 r = (n.scale(2*n.dot(e)).add(e.scale(-1))).normalized();
-      Ray reflectedRay = new Ray(p, r);
-      RaycastHit hit = raycast(reflectedRay);
-      Color reflectContrib = hit == null ? _background : shadeEyeHit(reflectedRay, hit);
-      reflectContrib.scale(objMat.kRefl);
-      out = out.add(reflectContrib);
-    }
-
 
     return out;
   }
