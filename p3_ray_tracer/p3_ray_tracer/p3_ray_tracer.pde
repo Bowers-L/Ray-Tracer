@@ -1,6 +1,6 @@
 /*
 * Author: Logan Bowers
- * IMPORTANT NOTES:
+ * IMPORTANT NOTES (from P2):
  * - I split up the timer into Build Time and Render Time because I wanted to see if there was a difference.
  * -   Build Time is the time it takes from the start of parsing a scene file to the first render call.
  * -   Render Time is the time it takes from the first render call to when rendering is finished.

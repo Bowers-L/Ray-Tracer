@@ -127,10 +127,17 @@ public class Scene {
       //Ignore lighting (useful for intersection testing)
       return eyeHit.obj.material.diffuse;
     }
+    
+    Material objMat = eyeHit.obj.material;
+    Point3 p = eyeHit.contact.point;
+    Vector3 n = eyeHit.contact.normal;
+    Vector3 e = eye.direction.scale(-1);
 
     Color out = new Color(0, 0, 0);
+    
+    //Add contributions from Lights.
     for (Light l : lights()) {
-      Light.ShadowRayInfo shadowRay = l.getShadowRay(eyeHit.contact.point);
+      Light.ShadowRayInfo shadowRay = l.getShadowRay(p);
 
       if (shadowRay == null) {
         continue;
@@ -141,13 +148,22 @@ public class Scene {
         continue;
       }
 
-      Color contrib = getContributionFromLight(eyeHit.obj.material, l.col, eyeHit.contact.normal, shadowRay.ray.direction, eye.direction.scale(-1));
-      out = out.add(contrib);
-
-      if (debug_flag) {
-        println(out);
-      }
+      Vector3 lightDir = shadowRay.ray.direction;
+      Color lightContrib = getContributionFromLight(objMat, l.col, n, lightDir, e);
+      out = out.add(lightContrib);
     }
+    
+    if (objMat.kRefl > 0f) {
+      //Get contribution from second raycast
+      //r = 2n(n dot v) - v (v = e)
+      Vector3 r = (n.scale(2*n.dot(e)).add(e.scale(-1))).normalized();
+      Ray reflectedRay = new Ray(p, r);
+      RaycastHit hit = raycast(reflectedRay);
+      Color reflectContrib = hit == null ? _background : shadeEyeHit(reflectedRay, hit);
+      reflectContrib.scale(objMat.kRefl);
+      out = out.add(reflectContrib);
+    }
+
 
     return out;
   }
